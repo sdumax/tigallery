@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 
 /src/generated/client
+
+/src/generated/prisma
