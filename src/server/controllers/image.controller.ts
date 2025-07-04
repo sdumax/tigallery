@@ -6,13 +6,13 @@ import { isValidUnsplashId } from "../utils/index.js";
 type Comment = {
   id: number;
   imageId: string;
-  author: string;
+  userId: number | null;
   content: string;
   createdAt: Date;
 };
 
 type CreateCommentBody = {
-  author: string;
+  userId: number;
   content: string;
 };
 
@@ -56,13 +56,13 @@ export const addComment: RequestHandler<
     return;
   }
 
-  const { author, content } = req.body;
+  const { userId, content } = req.body;
 
   // Basic validation
-  if (!author || !content || content.trim().length < 3) {
+  if (!userId || !content || content.trim().length < 3) {
     res
       .status(400)
-      .json({ message: "Author and content (min 3 characters) are required." });
+      .json({ message: "User ID and content (min 3 characters) are required." });
     return;
   }
 
@@ -70,7 +70,7 @@ export const addComment: RequestHandler<
     const comment = await prisma.comment.create({
       data: {
         imageId,
-        author,
+        userId,
         content: content.trim(),
       },
     });
