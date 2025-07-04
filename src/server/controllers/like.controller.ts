@@ -1,5 +1,6 @@
 import { RequestHandler } from "express";
 import { prisma } from "../prisma/client.js";
+import { isValidUnsplashId } from "../utils/index.js";
 
 // Response type for like count
 type LikeCountResponse = {
@@ -29,6 +30,11 @@ export const unlikeImage: RequestHandler<
 > = async (req, res) => {
   const { id: imageId } = req.params;
 
+   if (!isValidUnsplashId(imageId)) {
+      res.status(400).json({ message: "Invalid image ID format" });
+      return;
+   }
+  
   try {
     const like = await prisma.like.findFirst({
       where: { imageId },

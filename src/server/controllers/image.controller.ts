@@ -1,5 +1,6 @@
 import { RequestHandler } from "express";
 import { prisma } from "../prisma/client.js";
+import { isValidUnsplashId } from "../utils/index.js";
 
 // Types
 type Comment = {
@@ -25,9 +26,8 @@ export const getCommentsByImage: RequestHandler<
   const { id: imageId } = req.params;
 
   // Validate imageId
-  console.log(`Received imageId: ${imageId}`);
-  if (!imageId || imageId.length !== 36) {
-    res.status(400).json({ message: "Invalid image ID" });
+ if (!isValidUnsplashId(imageId)) {
+    res.status(400).json({ message: "Invalid image ID format" });
     return;
   }
 

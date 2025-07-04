@@ -4,6 +4,7 @@ import {
   getImageById,
   getImages,
 } from "../services/unsplash.service.js";
+import { isValidUnsplashId } from "../utils/index.js";
 
 // GET /api/unsplash/search?query=cat&page=1
 export const handleSearch: RequestHandler<
@@ -35,6 +36,10 @@ export const handleGetImage: RequestHandler<{ id: string }> = async (
 ) => {
   const { id } = req.params;
 
+  if (!isValidUnsplashId(id)) {
+    res.status(400).json({ message: "Invalid image ID format" });
+    return;
+  }
   try {
     const image = await getImageById(id);
     res.json(image);
