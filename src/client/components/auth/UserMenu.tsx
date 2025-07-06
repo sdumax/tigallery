@@ -101,7 +101,6 @@ export const UserMenu: React.FC<UserMenuProps> = ({
               onClick={() => {
                 setIsOpen(false);
                 // TODO: Navigate to profile page
-                console.log("Navigate to profile");
               }}
               className="w-full px-4 py-3 text-left text-text-primary hover:bg-card-hover transition-colors flex items-center space-x-3 min-h-[44px]">
               <div className="w-5 h-5 flex items-center justify-center">👤</div>
@@ -112,7 +111,6 @@ export const UserMenu: React.FC<UserMenuProps> = ({
               onClick={() => {
                 setIsOpen(false);
                 // TODO: Navigate to settings page
-                console.log("Navigate to settings");
               }}
               className="w-full px-4 py-3 text-left text-text-primary hover:bg-card-hover transition-colors flex items-center space-x-3 min-h-[44px]">
               <div className="w-5 h-5 flex items-center justify-center">⚙️</div>

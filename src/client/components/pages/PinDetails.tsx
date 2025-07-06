@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import { BackIcon, HeartIcon, CommentIcon, ShareIcon } from "../svgIcons";
 import { Avatar } from "../ui/Avatar";
 import { Button } from "../ui/Button";
@@ -34,14 +34,6 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
     isLoading,
     error,
   } = useQuery(pinDetailsQueryOptions(pinId, user?.id));
-
-  // Debug logging
-  React.useEffect(() => {
-    console.log("PinDetails - pinId:", pinId);
-    console.log("PinDetails - pin data:", pin);
-    console.log("PinDetails - isLoading:", isLoading);
-    console.log("PinDetails - error:", error);
-  }, [pinId, pin, isLoading, error]);
 
   // Mutations
   const likeMutation = useToggleLikeMutation(pinId);
@@ -314,7 +306,6 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
                     key={index}
                     variant="default"
                     clickable
-                    onClick={() => console.log(`Clicked tag: ${tag}`)}
                     className="text-xs sm:text-sm">
                     #{tag}
                   </Tag>

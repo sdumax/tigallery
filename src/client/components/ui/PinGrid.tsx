@@ -54,7 +54,6 @@ export const PinGrid = () => {
       };
 
   const handleLikeToggle = (id: string, isLiked: boolean) => {
-    console.log(`Pin ${id} ${isLiked ? "liked" : "unliked"}`);
     // Like functionality is now handled within PinCard component
   };
 

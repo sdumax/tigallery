@@ -7,9 +7,9 @@
     "dev": "nodemon -w src/server -x tsx src/server/main.ts",
     "start": "NODE_ENV=production tsx src/server/main.ts",
     "build": "vite build",
-    "prisma:migrate": "npx prisma migrate dev --schema=src/server/prisma/schema.prisma",
-    "prisma:generate": "npx prisma generate --schema=src/server/prisma/schema.prisma",
-    "prisma:studio": "npx prisma studio --schema=src/server/prisma/schema.prisma"
+    "prisma:migrate": "prisma migrate dev --schema=src/server/prisma/schema.prisma",
+    "prisma:generate": "prisma generate --schema=src/server/prisma/schema.prisma",
+    "prisma:studio": "prisma studio --schema=src/server/prisma/schema.prisma"
   },
   "dependencies": {
     "@prisma/client": "^6.11.1",
