@@ -125,7 +125,6 @@ export const PinGrid = () => {
             imageUrl={image.urls.regular}
             alt={image.alt_description || image.description || "Untitled"}
             title={image.alt_description || image.description || "Untitled"}
-            description={image.description || ""}
             author={image.user.name || image.user.username}
             isLiked={false} // TODO: Get real like status from user data
             onLikeToggle={handleLikeToggle}

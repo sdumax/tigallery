@@ -10,7 +10,6 @@ interface PinCardProps {
   imageUrl: string;
   alt: string;
   title: string;
-  description: string;
   author: string;
   isLiked?: boolean;
   onLikeToggle?: (id: string, isLiked: boolean) => void;
@@ -21,7 +20,6 @@ export const PinCard: React.FC<PinCardProps> = ({
   imageUrl,
   alt,
   title,
-  description,
   author,
   isLiked: initialIsLiked = false,
   onLikeToggle,
@@ -63,13 +61,18 @@ export const PinCard: React.FC<PinCardProps> = ({
           </div>
         </div>
         <div className="p-4">
-          <h3 className="font-bold text-lg mb-1 group-hover:text-primary transition-colors">
+          <h3
+            className="font-bold group-hover:text-primary transition-colors truncate"
+            title={title}>
             {title}
           </h3>
-          <p className="text-text-secondary text-sm mb-3">{description}</p>
-          <div className="flex items-center">
-            <Avatar name={author} size="sm" className="mr-2" />
-            <span className="text-text-secondary text-sm">{author}</span>
+          <div className="author-info">
+            <Avatar name={author} size="sm" className="flex-shrink-0" />
+            <span
+              className="text-text-secondary text-sm truncate author-truncate"
+              title={author}>
+              {author}
+            </span>
           </div>
         </div>
       </Link>

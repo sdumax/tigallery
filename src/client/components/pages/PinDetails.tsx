@@ -1,89 +1,100 @@
 import React, { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { BackIcon, HeartIcon, CommentIcon, ShareIcon } from "../svgIcons";
 import { Avatar } from "../ui/Avatar";
 import { Button } from "../ui/Button";
 import { Tag } from "../ui/Tag";
 import { UnsplashBlurImage } from "../ui/UnsplashBlurImage";
+import { PinDetailsLoading } from "../ui/LoadingComponents";
+import { pinDetailsQueryOptions } from "../../lib/queryOptions";
 
 interface PinDetailsProps {
   pinId: string;
 }
 
-interface PinData {
-  id: string;
-  imageUrl: string;
-  title: string;
-  description: string;
-  author: string;
-  authorAvatar?: string;
-  tags: string[];
-  likes: number;
-  isLiked?: boolean;
-  comments: Array<{
-    id: string;
-    author: string;
-    content: string;
-    createdAt: string;
-  }>;
-  createdAt: string;
-}
-
-// Mock data for now - this would come from your API
-const mockPinData: PinData = {
-  id: "1",
-  imageUrl:
-    "https://images.unsplash.com/photo-1547658719-da2b51169166?ixlib=rb-4.0.3&auto=format&fit=crop&w=1200&q=80",
-  title: "Minimalist Living Room Design",
-  description:
-    "A beautiful minimalist living room featuring clean lines, neutral colors, and modern furniture. Perfect inspiration for creating a serene and organized living space that promotes calm and focus.",
-  author: "Design Studio",
-  authorAvatar:
-    "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?ixlib=rb-1.2.1&auto=format&fit=crop&w=256&q=80",
-  tags: [
-    "interior design",
-    "minimalist",
-    "living room",
-    "modern",
-    "neutral colors",
-  ],
-  likes: 1247,
-  isLiked: false,
-  comments: [
-    {
-      id: "1",
-      author: "Sarah Johnson",
-      content: "Love this aesthetic! Where can I find similar furniture?",
-      createdAt: "2 hours ago",
-    },
-    {
-      id: "2",
-      author: "Mike Chen",
-      content:
-        "The lighting in this room is perfect. Really creates a warm atmosphere.",
-      createdAt: "5 hours ago",
-    },
-    {
-      id: "3",
-      author: "Emma Wilson",
-      content: "This is exactly the vibe I want for my new apartment!",
-      createdAt: "1 day ago",
-    },
-  ],
-  createdAt: "3 days ago",
-};
-
 export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
-  // In a real app, you'd fetch the pin data based on pinId
-  const pin = mockPinData;
+  // TODO: Get real userId from auth system
+  const userId = 1; // Mock user ID for now
 
-  const [isLiked, setIsLiked] = useState(pin.isLiked || false);
-  const [likesCount, setLikesCount] = useState(pin.likes);
+  // Fetch pin details with comments and likes
+  const {
+    data: pin,
+    isLoading,
+    error,
+  } = useQuery(pinDetailsQueryOptions(pinId, userId));
 
-  const handleLikeToggle = () => {
+  // Debug logging
+  React.useEffect(() => {
+    console.log("PinDetails - pinId:", pinId);
+    console.log("PinDetails - pin data:", pin);
+    console.log("PinDetails - isLoading:", isLoading);
+    console.log("PinDetails - error:", error);
+  }, [pinId, pin, isLoading, error]);
+
+  const [isLiked, setIsLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(0);
+
+  // Update local state when data loads
+  React.useEffect(() => {
+    if (pin) {
+      setIsLiked(pin.isLiked);
+      setLikesCount(pin.likes);
+    }
+  }, [pin]);
+
+  const handleLikeToggle = async () => {
+    // TODO: Implement real like/unlike functionality
     const newLikedState = !isLiked;
     setIsLiked(newLikedState);
     setLikesCount((prev) => (newLikedState ? prev + 1 : prev - 1));
   };
+
+  if (isLoading) {
+    return (
+      <>
+        <div className="mb-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={<BackIcon className="h-5 w-5" />}
+            onClick={() => window.history.back()}
+            className="text-text-secondary hover:text-text-primary">
+            Back to Gallery
+          </Button>
+        </div>
+        <PinDetailsLoading />
+      </>
+    );
+  }
+
+  if (error || !pin) {
+    return (
+      <>
+        <div className="mb-8">
+          <Button
+            variant="ghost"
+            size="sm"
+            icon={<BackIcon className="h-5 w-5" />}
+            onClick={() => window.history.back()}
+            className="text-text-secondary hover:text-text-primary">
+            Back to Gallery
+          </Button>
+        </div>
+        <div className="text-center py-12">
+          <p className="text-text-secondary mb-4">
+            {error
+              ? `Error loading pin details: ${error instanceof Error ? error.message : "Unknown error"}`
+              : "Pin not found"}
+          </p>
+          <Button
+            variant="outline"
+            onClick={() => (window.location.href = "/")}>
+            Return to Gallery
+          </Button>
+        </div>
+      </>
+    );
+  }
 
   return (
     <>
@@ -188,20 +199,22 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
           </div>
 
           {/* Tags */}
-          <div>
-            <h3 className="font-semibold text-text-primary mb-3">Tags</h3>
-            <div className="flex flex-wrap gap-2">
-              {pin.tags.map((tag, index) => (
-                <Tag
-                  key={index}
-                  variant="default"
-                  clickable
-                  onClick={() => console.log(`Clicked tag: ${tag}`)}>
-                  #{tag}
-                </Tag>
-              ))}
+          {pin.tags && pin.tags.length > 0 && (
+            <div>
+              <h3 className="font-semibold text-text-primary mb-3">Tags</h3>
+              <div className="flex flex-wrap gap-2">
+                {pin.tags.map((tag, index) => (
+                  <Tag
+                    key={index}
+                    variant="default"
+                    clickable
+                    onClick={() => console.log(`Clicked tag: ${tag}`)}>
+                    #{tag}
+                  </Tag>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Comments Section */}
           <div>
@@ -230,26 +243,39 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
 
             {/* Comments List */}
             <div className="space-y-4">
-              {pin.comments.map((comment) => (
-                <div key={comment.id} className="flex space-x-3">
-                  <Avatar name={comment.author} size="sm" />
-                  <div className="flex-1">
-                    <div className="bg-card rounded-lg p-3">
-                      <div className="flex items-center justify-between mb-1">
-                        <h4 className="font-medium text-text-primary text-sm">
-                          {comment.author}
-                        </h4>
-                        <span className="text-xs text-text-tertiary">
-                          {comment.createdAt}
-                        </span>
+              {pin.comments && pin.comments.length > 0 ? (
+                pin.comments.map((comment) => (
+                  <div key={comment.id} className="flex space-x-3">
+                    <Avatar
+                      name={`User ${comment.userId || "Anonymous"}`}
+                      size="sm"
+                    />
+                    <div className="flex-1">
+                      <div className="bg-card rounded-lg p-3">
+                        <div className="flex items-center justify-between mb-1">
+                          <h4 className="font-medium text-text-primary text-sm">
+                            {comment.userId
+                              ? `User ${comment.userId}`
+                              : "Anonymous"}
+                          </h4>
+                          <span className="text-xs text-text-tertiary">
+                            {new Date(comment.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <p className="text-text-secondary text-sm">
+                          {comment.content}
+                        </p>
                       </div>
-                      <p className="text-text-secondary text-sm">
-                        {comment.content}
-                      </p>
                     </div>
                   </div>
+                ))
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-text-secondary">
+                    No comments yet. Be the first to comment!
+                  </p>
                 </div>
-              ))}
+              )}
             </div>
           </div>
         </div>

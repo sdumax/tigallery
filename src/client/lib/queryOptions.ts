@@ -15,19 +15,31 @@ const transformImageToPin = (
   image: UnsplashImage,
   isLiked = false,
   comments: Comment[] = []
-): Pin => ({
-  id: image.id,
-  imageUrl: image.urls.regular,
-  title: image.alt_description || image.description || "Untitled",
-  description: image.description || image.alt_description || "",
-  author: image.user.name || image.user.username,
-  authorAvatar: image.user.profile_image.medium,
-  tags: [], // Unsplash doesn't provide tags in this format, could be enhanced
-  likes: image.likes,
-  isLiked,
-  comments,
-  createdAt: new Date(image.created_at).toLocaleDateString(),
-});
+): Pin => {
+  // Create basic tags from description or title
+  const description = image.description || image.alt_description || "";
+  const tags = description
+    ? description
+        .toLowerCase()
+        .split(/[,\s]+/)
+        .filter((word) => word.length > 3)
+        .slice(0, 5) // Limit to first 5 relevant words
+    : [];
+
+  return {
+    id: image.id,
+    imageUrl: image.urls.regular,
+    title: image.alt_description || image.description || "Untitled",
+    description: image.description || image.alt_description || "",
+    author: image.user.name || image.user.username,
+    authorAvatar: image.user.profile_image.medium,
+    tags,
+    likes: image.likes,
+    isLiked,
+    comments,
+    createdAt: new Date(image.created_at).toLocaleDateString(),
+  };
+};
 
 // Query Keys
 export const queryKeys = {
