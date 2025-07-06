@@ -4,7 +4,7 @@ import { BackIcon, HeartIcon, CommentIcon, ShareIcon } from "../svgIcons";
 import { Avatar } from "../ui/Avatar";
 import { Button } from "../ui/Button";
 import { Tag } from "../ui/Tag";
-import { UnsplashBlurImage } from "../ui/UnsplashBlurImage";
+import { BlurHashImageWithCrossfade } from "../ui/BlurHashImage";
 import { PinDetailsLoading } from "../ui/LoadingComponents";
 import { pinDetailsQueryOptions } from "../../lib/queryOptions";
 
@@ -110,27 +110,27 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
         </Button>
       </div>
 
-      <div className="grid lg:grid-cols-2 gap-8">
+      <div className="grid lg:grid-cols-2 gap-6 lg:gap-8">
         {/* Image Section */}
-        <div className="space-y-4">
+        <div className="space-y-3 sm:space-y-4">
           <div className="relative rounded-lg overflow-hidden bg-card">
-            <UnsplashBlurImage
+            <BlurHashImageWithCrossfade
               src={pin.imageUrl}
               alt={pin.title}
-              animationType="progressive"
+              blurHash={pin.blurHash}
               className="w-full h-auto object-cover"
             />
             {/* Like Button Overlay */}
-            <div className="absolute top-4 right-4">
+            <div className="absolute top-3 sm:top-4 right-3 sm:right-4">
               <Button
                 variant={isLiked ? "primary" : "secondary"}
                 size="md"
                 icon={
                   <HeartIcon
-                    className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`}
+                    className={`h-4 w-4 sm:h-5 sm:w-5 ${isLiked ? "fill-current" : ""}`}
                   />
                 }
-                className={`rounded-full shadow-lg ${isLiked ? "bg-red-500 hover:bg-red-600 text-white" : ""}`}
+                className={`rounded-full shadow-lg text-sm sm:text-base min-h-[44px] ${isLiked ? "bg-red-500 hover:bg-red-600 text-white" : ""}`}
                 onClick={handleLikeToggle}>
                 {isLiked ? "Liked" : "Like"}
               </Button>
@@ -138,32 +138,32 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
           </div>
 
           {/* Action Buttons */}
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
+          <div className="flex items-center justify-between px-2 sm:px-0">
+            <div className="flex items-center space-x-3 sm:space-x-4">
               <Button
                 variant="ghost"
                 size="sm"
                 icon={
                   <HeartIcon
-                    className={`h-5 w-5 ${isLiked ? "fill-current text-red-500" : ""}`}
+                    className={`h-4 w-4 sm:h-5 sm:w-5 ${isLiked ? "fill-current text-red-500" : ""}`}
                   />
                 }
-                className="text-text-secondary hover:text-primary"
+                className="text-text-secondary hover:text-primary text-sm sm:text-base min-h-[44px] sm:min-h-auto"
                 onClick={handleLikeToggle}>
                 {likesCount}
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
-                icon={<CommentIcon className="h-5 w-5" />}
-                className="text-text-secondary hover:text-primary">
+                icon={<CommentIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
+                className="text-text-secondary hover:text-primary text-sm sm:text-base min-h-[44px] sm:min-h-auto">
                 {pin.comments.length}
               </Button>
               <Button
                 variant="ghost"
                 size="sm"
-                icon={<ShareIcon className="h-5 w-5" />}
-                className="text-text-secondary hover:text-primary">
+                icon={<ShareIcon className="h-4 w-4 sm:h-5 sm:w-5" />}
+                className="text-text-secondary hover:text-primary text-sm sm:text-base min-h-[44px] sm:min-h-auto">
                 Share
               </Button>
             </div>
@@ -171,28 +171,33 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
         </div>
 
         {/* Details Section */}
-        <div className="space-y-6">
+        <div className="space-y-4 sm:space-y-6">
           {/* Pin Info */}
           <div>
-            <h1 className="text-3xl font-bold text-text-primary mb-4 truncate w-1/2">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-text-primary mb-3 sm:mb-4">
               {pin.title}
             </h1>
-            <p className="text-text-secondary leading-relaxed">
+            <p className="text-text-secondary leading-relaxed text-sm sm:text-base">
               {pin.description}
             </p>
           </div>
 
           {/* Author Info */}
-          <div className="flex items-center space-x-4 p-4 bg-card rounded-lg">
+          <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 bg-card rounded-lg">
             <Avatar src={pin.authorAvatar} name={pin.author} size="lg" />
-            <div>
-              <h3 className="font-semibold text-text-primary">{pin.author}</h3>
-              <p className="text-sm text-text-secondary">
+            <div className="flex-1 min-w-0">
+              <h3 className="font-semibold text-text-primary text-sm sm:text-base truncate">
+                {pin.author}
+              </h3>
+              <p className="text-xs sm:text-sm text-text-secondary">
                 Posted {pin.createdAt}
               </p>
             </div>
-            <div className="ml-auto">
-              <Button variant="primary" size="sm">
+            <div className="flex-shrink-0">
+              <Button
+                variant="primary"
+                size="sm"
+                className="min-h-[44px] sm:min-h-auto text-sm">
                 Follow
               </Button>
             </div>
@@ -201,14 +206,17 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
           {/* Tags */}
           {pin.tags && pin.tags.length > 0 && (
             <div>
-              <h3 className="font-semibold text-text-primary mb-3">Tags</h3>
-              <div className="flex flex-wrap gap-2">
+              <h3 className="font-semibold text-text-primary mb-2 sm:mb-3 text-sm sm:text-base">
+                Tags
+              </h3>
+              <div className="flex flex-wrap gap-1.5 sm:gap-2">
                 {pin.tags.map((tag, index) => (
                   <Tag
                     key={index}
                     variant="default"
                     clickable
-                    onClick={() => console.log(`Clicked tag: ${tag}`)}>
+                    onClick={() => console.log(`Clicked tag: ${tag}`)}
+                    className="text-xs sm:text-sm">
                     #{tag}
                   </Tag>
                 ))}
@@ -218,22 +226,25 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
 
           {/* Comments Section */}
           <div>
-            <h3 className="font-semibold text-text-primary mb-4">
+            <h3 className="font-semibold text-text-primary mb-3 sm:mb-4 text-sm sm:text-base">
               Comments ({pin.comments.length})
             </h3>
 
             {/* Add Comment */}
-            <div className="mb-6">
-              <div className="flex space-x-3">
+            <div className="mb-4 sm:mb-6">
+              <div className="flex space-x-2 sm:space-x-3">
                 <Avatar name="User" size="sm" />
                 <div className="flex-1">
                   <textarea
                     placeholder="Add a comment..."
-                    className="w-full p-3 bg-card border border-border rounded-lg focus:outline-none focus:border-primary resize-none"
+                    className="w-full p-3 bg-card border border-border rounded-lg focus:outline-none focus:border-primary resize-none text-sm sm:text-base min-h-[88px]"
                     rows={3}
                   />
                   <div className="flex justify-end mt-2">
-                    <Button variant="primary" size="sm">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="min-h-[44px] sm:min-h-auto text-sm">
                       Post Comment
                     </Button>
                   </div>
@@ -242,27 +253,27 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
             </div>
 
             {/* Comments List */}
-            <div className="space-y-4">
+            <div className="space-y-3 sm:space-y-4">
               {pin.comments && pin.comments.length > 0 ? (
                 pin.comments.map((comment) => (
-                  <div key={comment.id} className="flex space-x-3">
+                  <div key={comment.id} className="flex space-x-2 sm:space-x-3">
                     <Avatar
                       name={`User ${comment.userId || "Anonymous"}`}
                       size="sm"
                     />
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="bg-card rounded-lg p-3">
                         <div className="flex items-center justify-between mb-1">
-                          <h4 className="font-medium text-text-primary text-sm">
+                          <h4 className="font-medium text-text-primary text-xs sm:text-sm truncate">
                             {comment.userId
                               ? `User ${comment.userId}`
                               : "Anonymous"}
                           </h4>
-                          <span className="text-xs text-text-tertiary">
+                          <span className="text-xs text-text-tertiary flex-shrink-0 ml-2">
                             {new Date(comment.createdAt).toLocaleDateString()}
                           </span>
                         </div>
-                        <p className="text-text-secondary text-sm">
+                        <p className="text-text-secondary text-xs sm:text-sm">
                           {comment.content}
                         </p>
                       </div>
@@ -270,8 +281,8 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
                   </div>
                 ))
               ) : (
-                <div className="text-center py-8">
-                  <p className="text-text-secondary">
+                <div className="text-center py-6 sm:py-8">
+                  <p className="text-text-secondary text-sm sm:text-base">
                     No comments yet. Be the first to comment!
                   </p>
                 </div>

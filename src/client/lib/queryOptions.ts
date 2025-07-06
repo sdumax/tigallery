@@ -33,6 +33,7 @@ const transformImageToPin = (
     description: image.description || image.alt_description || "",
     author: image.user.name || image.user.username,
     authorAvatar: image.user.profile_image.medium,
+    blurHash: image.blur_hash,
     tags,
     likes: image.likes,
     isLiked,

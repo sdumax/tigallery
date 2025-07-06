@@ -23,9 +23,9 @@ const variantClasses = {
 };
 
 const sizeClasses = {
-  sm: "px-3 py-2 text-sm rounded-md",
-  md: "px-4 py-2 text-base rounded-lg",
-  lg: "px-6 py-3 text-lg rounded-xl",
+  sm: "px-3 py-2 text-sm rounded-md min-h-[36px] sm:min-h-[32px]",
+  md: "px-4 py-2 text-base rounded-lg min-h-[44px] sm:min-h-[40px]",
+  lg: "px-6 py-3 text-lg rounded-xl min-h-[48px] sm:min-h-[44px]",
 };
 
 export const Button: React.FC<ButtonProps> = ({

@@ -3,6 +3,7 @@ export interface UnsplashImage {
   id: string;
   description: string | null;
   alt_description: string | null;
+  blur_hash: string;
   urls: {
     raw: string;
     full: string;
@@ -80,6 +81,7 @@ export interface Pin {
   description: string;
   author: string;
   authorAvatar?: string;
+  blurHash?: string;
   tags: string[];
   likes: number;
   isLiked: boolean;

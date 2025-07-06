@@ -12,6 +12,7 @@ export { Button } from "./ui/Button";
 export { Tag } from "./ui/Tag";
 export { BlurImage, ProgressiveBlurImage } from "./ui/BlurImage";
 export { UnsplashBlurImage, ImageSkeleton } from "./ui/UnsplashBlurImage";
+export { BlurHashImage, BlurHashImageWithCrossfade } from "./ui/BlurHashImage";
 export {
   LoadingGrid,
   SearchLoadingGrid,

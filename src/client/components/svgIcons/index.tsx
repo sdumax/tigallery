@@ -234,6 +234,9 @@ export const CloseIcon: React.FC<IconProps> = ({
   </svg>
 );
 
+// Alias for CloseIcon for compatibility
+export const XIcon = CloseIcon;
+
 // Edit Icon
 export const EditIcon: React.FC<IconProps> = ({
   className = "h-6 w-6",
