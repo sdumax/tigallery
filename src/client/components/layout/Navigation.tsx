@@ -9,9 +9,9 @@ export const Navigation = () => {
           {/* Logo */}
           <div className="flex-shrink-0 flex items-center">
             <div className="bg-primary w-8 h-8 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-xl">P</span>
+              <span className="text-white font-bold text-xl">T</span>
             </div>
-            <span className="ml-2 text-xl font-bold">Pinterest</span>
+            <span className="ml-2 text-xl font-bold">Tigallery</span>
           </div>
 
           {/* Search Bar */}

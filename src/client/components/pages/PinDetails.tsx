@@ -1,5 +1,8 @@
-import React from "react";
+import React, { useState } from "react";
 import { BackIcon, HeartIcon, CommentIcon, ShareIcon } from "../svgIcons";
+import { Avatar } from "../ui/Avatar";
+import { Button } from "../ui/Button";
+import { Tag } from "../ui/Tag";
 
 interface PinDetailsProps {
   pinId: string;
@@ -14,6 +17,7 @@ interface PinData {
   authorAvatar?: string;
   tags: string[];
   likes: number;
+  isLiked?: boolean;
   comments: Array<{
     id: string;
     author: string;
@@ -42,6 +46,7 @@ const mockPinData: PinData = {
     "neutral colors",
   ],
   likes: 1247,
+  isLiked: false,
   comments: [
     {
       id: "1",
@@ -70,16 +75,27 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
   // In a real app, you'd fetch the pin data based on pinId
   const pin = mockPinData;
 
+  const [isLiked, setIsLiked] = useState(pin.isLiked || false);
+  const [likesCount, setLikesCount] = useState(pin.likes);
+
+  const handleLikeToggle = () => {
+    const newLikedState = !isLiked;
+    setIsLiked(newLikedState);
+    setLikesCount((prev) => (newLikedState ? prev + 1 : prev - 1));
+  };
+
   return (
     <>
       {/* Back Button */}
       <div className="mb-8">
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
+          icon={<BackIcon className="h-5 w-5" />}
           onClick={() => window.history.back()}
-          className="flex items-center text-text-secondary hover:text-text-primary transition-colors">
-          <BackIcon className="h-5 w-5 mr-2" />
+          className="text-text-secondary hover:text-text-primary">
           Back to Gallery
-        </button>
+        </Button>
       </div>
 
       <div className="grid lg:grid-cols-2 gap-8">
@@ -91,28 +107,52 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
               alt={pin.title}
               className="w-full h-auto object-cover"
             />
-            {/* Save Button Overlay */}
+            {/* Like Button Overlay */}
             <div className="absolute top-4 right-4">
-              <button className="bg-primary hover:bg-primary-hover text-white rounded-full px-6 py-3 font-bold transition-colors shadow-lg">
-                Save
-              </button>
+              <Button
+                variant={isLiked ? "primary" : "secondary"}
+                size="md"
+                icon={
+                  <HeartIcon
+                    className={`h-5 w-5 ${isLiked ? "fill-current" : ""}`}
+                  />
+                }
+                className={`rounded-full shadow-lg ${isLiked ? "bg-red-500 hover:bg-red-600 text-white" : ""}`}
+                onClick={handleLikeToggle}>
+                {isLiked ? "Liked" : "Like"}
+              </Button>
             </div>
           </div>
 
           {/* Action Buttons */}
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4">
-              <button className="flex items-center space-x-2 text-text-secondary hover:text-primary transition-colors">
-                <HeartIcon />
-                <span>{pin.likes}</span>
-              </button>
-              <button className="flex items-center space-x-2 text-text-secondary hover:text-primary transition-colors">
-                <CommentIcon />
-                <span>{pin.comments.length}</span>
-              </button>
-              <button className="text-text-secondary hover:text-primary transition-colors">
-                <ShareIcon />
-              </button>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={
+                  <HeartIcon
+                    className={`h-5 w-5 ${isLiked ? "fill-current text-red-500" : ""}`}
+                  />
+                }
+                className="text-text-secondary hover:text-primary"
+                onClick={handleLikeToggle}>
+                {likesCount}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<CommentIcon className="h-5 w-5" />}
+                className="text-text-secondary hover:text-primary">
+                {pin.comments.length}
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                icon={<ShareIcon className="h-5 w-5" />}
+                className="text-text-secondary hover:text-primary">
+                Share
+              </Button>
             </div>
           </div>
         </div>
@@ -131,28 +171,18 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
 
           {/* Author Info */}
           <div className="flex items-center space-x-4 p-4 bg-card rounded-lg">
-            <div className="w-12 h-12 rounded-full bg-gray-500 overflow-hidden">
-              {pin.authorAvatar ? (
-                <img
-                  src={pin.authorAvatar}
-                  alt={pin.author}
-                  className="w-full h-full object-cover"
-                />
-              ) : (
-                <div className="w-full h-full flex items-center justify-center text-white font-bold">
-                  {pin.author.charAt(0)}
-                </div>
-              )}
-            </div>
+            <Avatar src={pin.authorAvatar} name={pin.author} size="lg" />
             <div>
               <h3 className="font-semibold text-text-primary">{pin.author}</h3>
               <p className="text-sm text-text-secondary">
                 Posted {pin.createdAt}
               </p>
             </div>
-            <button className="ml-auto bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-full font-medium transition-colors">
-              Follow
-            </button>
+            <div className="ml-auto">
+              <Button variant="primary" size="sm">
+                Follow
+              </Button>
+            </div>
           </div>
 
           {/* Tags */}
@@ -160,11 +190,13 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
             <h3 className="font-semibold text-text-primary mb-3">Tags</h3>
             <div className="flex flex-wrap gap-2">
               {pin.tags.map((tag, index) => (
-                <span
+                <Tag
                   key={index}
-                  className="px-3 py-1 bg-card hover:bg-card-hover rounded-full text-sm text-text-secondary hover:text-text-primary transition-colors cursor-pointer">
+                  variant="default"
+                  clickable
+                  onClick={() => console.log(`Clicked tag: ${tag}`)}>
                   #{tag}
-                </span>
+                </Tag>
               ))}
             </div>
           </div>
@@ -178,9 +210,7 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
             {/* Add Comment */}
             <div className="mb-6">
               <div className="flex space-x-3">
-                <div className="w-8 h-8 rounded-full bg-accent flex items-center justify-center text-white font-bold text-sm">
-                  U
-                </div>
+                <Avatar name="User" size="sm" />
                 <div className="flex-1">
                   <textarea
                     placeholder="Add a comment..."
@@ -188,9 +218,9 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
                     rows={3}
                   />
                   <div className="flex justify-end mt-2">
-                    <button className="bg-primary hover:bg-primary-hover text-white px-4 py-2 rounded-full font-medium transition-colors">
+                    <Button variant="primary" size="sm">
                       Post Comment
-                    </button>
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -200,9 +230,7 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
             <div className="space-y-4">
               {pin.comments.map((comment) => (
                 <div key={comment.id} className="flex space-x-3">
-                  <div className="w-8 h-8 rounded-full bg-gray-500 flex items-center justify-center text-white font-bold text-sm">
-                    {comment.author.charAt(0)}
-                  </div>
+                  <Avatar name={comment.author} size="sm" />
                   <div className="flex-1">
                     <div className="bg-card rounded-lg p-3">
                       <div className="flex items-center justify-between mb-1">
