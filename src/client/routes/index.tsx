@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { CategoryFilter, PinGrid } from "../components";
-import { GalleryProvider } from "../contexts/GalleryContext";
 
 export const Route = createFileRoute("/")({
   component: Index,
@@ -8,12 +7,12 @@ export const Route = createFileRoute("/")({
 
 function Index() {
   return (
-    <GalleryProvider>
+    <>
       {/* Categories */}
       <CategoryFilter />
 
       {/* Pinterest Grid */}
       <PinGrid />
-    </GalleryProvider>
+    </>
   );
 }

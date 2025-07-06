@@ -28,8 +28,8 @@ body {
   padding: 0 4px; /* Small padding for mobile */
 }
 
-/* Small mobile screens */
-@media (max-width: 480px) {
+/* Very small mobile screens (iPhone SE and smaller) */
+@media (max-width: 374px) {
   .pinterest-grid {
     column-count: 1;
     column-gap: 0;
@@ -37,8 +37,8 @@ body {
   }
 }
 
-/* Medium mobile screens and up */
-@media (min-width: 481px) {
+/* Small to medium mobile screens */
+@media (min-width: 375px) and (max-width: 767px) {
   .pinterest-grid {
     column-count: 2;
     column-gap: 12px;

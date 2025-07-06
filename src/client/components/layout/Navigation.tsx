@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   SearchIcon,
   HomeIcon,
@@ -7,10 +7,39 @@ import {
   MenuIcon,
   XIcon,
 } from "../svgIcons";
+import { useGalleryContext } from "../../contexts/GalleryContext";
 
 export const Navigation = () => {
+  const { searchQuery, setSearchQuery, setSelectedCategory } =
+    useGalleryContext();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchInput, setSearchInput] = useState(searchQuery);
+
+  // Sync local search input with context
+  useEffect(() => {
+    setSearchInput(searchQuery);
+  }, [searchQuery]);
+
+  const handleSearch = (e: React.FormEvent) => {
+    e.preventDefault();
+    const trimmedSearch = searchInput.trim();
+    setSearchQuery(trimmedSearch);
+    if (trimmedSearch) {
+      setSelectedCategory("all"); // Reset category when searching
+    }
+    setIsSearchOpen(false); // Close mobile search after submitting
+  };
+
+  const clearSearch = () => {
+    setSearchQuery("");
+    setSearchInput("");
+    setSelectedCategory("all");
+  };
+
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchInput(e.target.value);
+  };
 
   return (
     <nav className="sticky top-0 z-50 bg-card border-b border-border">
@@ -35,16 +64,28 @@ export const Navigation = () => {
 
           {/* Desktop Search Bar */}
           <div className="hidden sm:flex flex-1 max-w-xl lg:max-w-2xl mx-4 lg:mx-8">
-            <div className="relative rounded-full bg-card border border-border hover:border-text-tertiary transition-colors w-full">
+            <form
+              onSubmit={handleSearch}
+              className="relative rounded-full bg-card border border-border hover:border-text-tertiary transition-colors w-full">
               <input
                 type="text"
-                placeholder="Search"
-                className="w-full py-2 px-4 pl-10 bg-transparent focus:outline-none placeholder-text-tertiary text-sm"
+                placeholder="Search for inspiration..."
+                value={searchInput}
+                onChange={handleSearchInputChange}
+                className="w-full py-2 px-4 pl-10 pr-12 bg-transparent focus:outline-none placeholder-text-tertiary text-sm"
               />
               <div className="absolute left-3 top-2.5 text-text-tertiary">
                 <SearchIcon className="w-4 h-4" />
               </div>
-            </div>
+              {(searchInput || searchQuery) && (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="absolute right-2 top-2 text-text-tertiary hover:text-text-primary transition-colors p-1 rounded-full hover:bg-card-hover">
+                  ✕
+                </button>
+              )}
+            </form>
           </div>
 
           {/* Desktop Navigation Icons */}
@@ -88,17 +129,29 @@ export const Navigation = () => {
         {/* Mobile Search Bar */}
         {isSearchOpen && (
           <div className="sm:hidden py-3 border-t border-border px-1">
-            <div className="relative rounded-full bg-card border border-border">
+            <form
+              onSubmit={handleSearch}
+              className="relative rounded-full bg-card border border-border">
               <input
                 type="text"
-                placeholder="Search"
-                className="w-full py-3 px-4 pl-10 bg-transparent focus:outline-none placeholder-text-tertiary text-base"
+                placeholder="Search for inspiration..."
+                value={searchInput}
+                onChange={handleSearchInputChange}
+                className="w-full py-3 px-4 pl-10 pr-12 bg-transparent focus:outline-none placeholder-text-tertiary text-base"
                 autoFocus
               />
               <div className="absolute left-3 top-3.5 text-text-tertiary">
                 <SearchIcon className="w-4 h-4" />
               </div>
-            </div>
+              {(searchInput || searchQuery) && (
+                <button
+                  type="button"
+                  onClick={clearSearch}
+                  className="absolute right-2 top-2.5 text-text-tertiary hover:text-text-primary transition-colors p-1.5 rounded-full hover:bg-card-hover min-h-[32px] min-w-[32px] flex items-center justify-center">
+                  ✕
+                </button>
+              )}
+            </form>
           </div>
         )}
 

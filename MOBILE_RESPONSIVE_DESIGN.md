@@ -46,20 +46,29 @@ This document outlines the mobile-first responsive design implementation for the
 
 ### 1. Navigation
 
-- **Mobile**: Hamburger menu with full-screen overlay
-- **Search**: Dedicated mobile search bar that expands
+- **Unified Search**: Single search bar in navigation (mobile and desktop)
+- **Mobile**: Expandable search with dedicated button
+- **Desktop**: Integrated search bar in navigation header
 - **Touch Targets**: All navigation elements have 44px minimum touch area
 - **Grid Layout**: Mobile menu uses a 4-column grid for better organization
+- **Search Functionality**: Real-time search with category integration
 
-### 2. Pinterest Grid Layout
+### 2. Category Filter
 
-- **1 Column**: < 480px (very small screens)
-- **2 Columns**: 481px - 768px (mobile/tablet)
-- **3 Columns**: 769px - 1024px (tablet)
-- **4 Columns**: 1025px - 1280px (desktop)
+- **Simplified Design**: Category pills only (search moved to navigation)
+- **Horizontal Scroll**: Touch-friendly category selection
+- **Search Status**: Shows current search/category state
+- **Mobile Optimized**: Better spacing and touch targets
+
+### 3. Pinterest Grid Layout
+
+- **1 Column**: < 375px (very small screens like iPhone SE)
+- **2 Columns**: 375px - 767px (most mobile devices)
+- **3 Columns**: 768px - 1023px (tablet)
+- **4 Columns**: 1024px - 1279px (desktop)
 - **5 Columns**: > 1280px (large desktop)
 
-### 3. Pin Cards
+### 4. Pin Cards
 
 - **Mobile Optimizations**:
   - Like buttons always visible (not just on hover)
@@ -67,7 +76,7 @@ This document outlines the mobile-first responsive design implementation for the
   - Smaller text for better fit
   - Touch-friendly interaction areas
 
-### 4. Pin Details Page
+### 5. Pin Details Page
 
 - **Mobile Layout**:
   - Single column layout on mobile
@@ -75,15 +84,15 @@ This document outlines the mobile-first responsive design implementation for the
   - Larger touch targets for action buttons
   - Improved comment section with better spacing
 
-### 5. Category Filter
+### 6. Category Filter
 
 - **Mobile Features**:
   - Horizontal scrolling category pills
-  - Larger search input (16px font to prevent iOS zoom)
-  - Touch-friendly clear and search buttons
+  - Touch-friendly selection
   - Responsive spacing and padding
+  - Clear search status indicators
 
-### 6. Typography
+### 7. Typography
 
 - **Mobile Hierarchy**:
   - Smaller base font sizes

@@ -1,8 +1,16 @@
 import express from "express";
+import cors from "cors";
 import ViteExpress from "vite-express";
 import appRouter from "./app.js";
 
 const app = express();
+
+// CORS configuration
+app.use(cors({
+  origin: process.env.CLIENT_URL || "http://localhost:3000",
+  credentials: true,
+  optionsSuccessStatus: 200,
+}));
 
 app.use(express.json());
 app.use("/api", appRouter);

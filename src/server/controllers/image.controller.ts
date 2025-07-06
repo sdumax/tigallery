@@ -1,6 +1,7 @@
 import { RequestHandler } from "express";
 import { prisma } from "../prisma/client.js";
 import { isValidUnsplashId } from "../utils/index.js";
+import { AuthenticatedRequest } from "../middleware/auth.middleware.js";
 
 // Types
 type Comment = {
@@ -9,10 +10,13 @@ type Comment = {
   userId: number | null;
   content: string;
   createdAt: Date;
+  user?: {
+    id: number;
+    username: string;
+  } | null;
 };
 
 type CreateCommentBody = {
-  userId: number;
   content: string;
 };
 
@@ -26,7 +30,7 @@ export const getCommentsByImage: RequestHandler<
   const { id: imageId } = req.params;
 
   // Validate imageId
- if (!isValidUnsplashId(imageId)) {
+  if (!isValidUnsplashId(imageId)) {
     res.status(400).json({ message: "Invalid image ID format" });
     return;
   }
@@ -34,6 +38,14 @@ export const getCommentsByImage: RequestHandler<
   try {
     const comments = await prisma.comment.findMany({
       where: { imageId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
+      },
       orderBy: { createdAt: "desc" },
     });
     res.status(200).json(comments);
@@ -44,25 +56,30 @@ export const getCommentsByImage: RequestHandler<
 };
 
 // POST /api/images/:id/comments
-export const addComment: RequestHandler<
-  { id: string },
-  Comment | CommentError,
-  CreateCommentBody
-> = async (req, res) => {
+export const addComment = async (
+  req: AuthenticatedRequest,
+  res: any
+): Promise<void> => {
   const { id: imageId } = req.params;
 
-  if (!imageId || imageId.length !== 36) {
-    res.status(400).json({ message: "Invalid image ID" });
+  if (!isValidUnsplashId(imageId)) {
+    res.status(400).json({ message: "Invalid image ID format" });
     return;
   }
 
-  const { userId, content } = req.body;
+  const { content }: CreateCommentBody = req.body;
+  const userId = req.user?.id;
 
   // Basic validation
-  if (!userId || !content || content.trim().length < 3) {
+  if (!userId) {
+    res.status(401).json({ message: "User not authenticated" });
+    return;
+  }
+
+  if (!content || content.trim().length < 3) {
     res
       .status(400)
-      .json({ message: "User ID and content (min 3 characters) are required." });
+      .json({ message: "Content (min 3 characters) is required." });
     return;
   }
 
@@ -72,6 +89,14 @@ export const addComment: RequestHandler<
         imageId,
         userId,
         content: content.trim(),
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            username: true,
+          },
+        },
       },
     });
     res.status(201).json(comment);
