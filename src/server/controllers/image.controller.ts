@@ -105,3 +105,50 @@ export const addComment = async (
     res.status(500).json({ message: "Failed to add comment" });
   }
 };
+
+// DELETE /api/images/:id/comments/:commentId
+export const deleteComment = async (
+  req: AuthenticatedRequest,
+  res: any
+): Promise<void> => {
+  const { id: imageId, commentId } = req.params;
+  const userId = req.user?.id;
+
+  if (!isValidUnsplashId(imageId)) {
+    res.status(400).json({ message: "Invalid image ID format" });
+    return;
+  }
+
+  if (!userId) {
+    res.status(401).json({ message: "User not authenticated" });
+    return;
+  }
+
+  try {
+    // Check if comment exists and belongs to the user
+    const comment = await prisma.comment.findFirst({
+      where: {
+        id: parseInt(commentId),
+        imageId,
+        userId,
+      },
+    });
+
+    if (!comment) {
+      res.status(404).json({ message: "Comment not found or unauthorized" });
+      return;
+    }
+
+    // Delete the comment
+    await prisma.comment.delete({
+      where: {
+        id: parseInt(commentId),
+      },
+    });
+
+    res.status(200).json({ message: "Comment deleted successfully" });
+  } catch (error: unknown) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to delete comment" });
+  }
+};

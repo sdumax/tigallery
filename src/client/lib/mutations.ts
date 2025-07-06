@@ -111,6 +111,32 @@ export const useAddCommentMutation = (imageId: string) => {
   });
 };
 
+// Delete Comment Mutation
+export const useDeleteCommentMutation = (imageId: string) => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (commentId: number) =>
+      imageApi.deleteComment(imageId, commentId),
+    onSuccess: (_, commentId) => {
+      // Remove the comment from the existing comments
+      queryClient.setQueryData(
+        queryKeys.imageComments(imageId),
+        (oldComments: any[] = []) =>
+          oldComments.filter((comment) => comment.id !== commentId)
+      );
+
+      // Invalidate pin details if it exists
+      queryClient.invalidateQueries({
+        queryKey: queryKeys.imageDetails(imageId),
+      });
+    },
+    onError: (error) => {
+      console.error("Failed to delete comment:", error);
+    },
+  });
+};
+
 // Custom hook for combined like/unlike functionality with optimistic updates
 export const useLikeToggle = (imageId: string, userId: number) => {
   const queryClient = useQueryClient();

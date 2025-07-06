@@ -19,6 +19,10 @@ export {
   PinDetailsLoading,
 } from "./ui/LoadingComponents";
 
+// Auth components
+export { AuthModal } from "./auth/AuthModal";
+export { UserMenu } from "./auth/UserMenu";
+
 // Page components
 export { PinDetails } from "./pages/PinDetails";
 

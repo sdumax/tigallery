@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { BackIcon, HeartIcon, CommentIcon, ShareIcon } from "../svgIcons";
 import { Avatar } from "../ui/Avatar";
 import { Button } from "../ui/Button";
@@ -7,21 +7,33 @@ import { Tag } from "../ui/Tag";
 import { BlurHashImageWithCrossfade } from "../ui/BlurHashImage";
 import { PinDetailsLoading } from "../ui/LoadingComponents";
 import { pinDetailsQueryOptions } from "../../lib/queryOptions";
+import { useAuth } from "../../contexts/AuthContext";
+import {
+  useToggleLikeMutation,
+  useAddCommentMutation,
+  useDeleteCommentMutation,
+} from "../../lib/mutations";
+import { AuthModal } from "../auth/AuthModal";
+import { useAuthModal } from "../../hooks/useAuthModal";
+import { formatRelativeTime, validateComment } from "../../utils/commentUtils";
+import { useImageLikeStatus } from "../../hooks/useLikes";
 
 interface PinDetailsProps {
   pinId: string;
 }
 
 export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
-  // TODO: Get real userId from auth system
-  const userId = 1; // Mock user ID for now
+  const { user, isAuthenticated } = useAuth();
+  const [commentText, setCommentText] = useState("");
+  const [commentError, setCommentError] = useState<string | null>(null);
+  const authModal = useAuthModal();
 
   // Fetch pin details with comments and likes
   const {
     data: pin,
     isLoading,
     error,
-  } = useQuery(pinDetailsQueryOptions(pinId, userId));
+  } = useQuery(pinDetailsQueryOptions(pinId, user?.id));
 
   // Debug logging
   React.useEffect(() => {
@@ -31,22 +43,109 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
     console.log("PinDetails - error:", error);
   }, [pinId, pin, isLoading, error]);
 
-  const [isLiked, setIsLiked] = useState(false);
-  const [likesCount, setLikesCount] = useState(0);
+  // Mutations
+  const likeMutation = useToggleLikeMutation(pinId);
+  const commentMutation = useAddCommentMutation(pinId);
+  const deleteCommentMutation = useDeleteCommentMutation(pinId);
 
-  // Update local state when data loads
+  // Get real-time like status for authenticated users
+  const likeStatus = useImageLikeStatus(pinId);
+
+  // Use real-time data if available, otherwise fall back to pin data
+  const isLiked = pin?.isLiked || likeStatus.isLiked;
+  const likesCount = pin?.likes || likeStatus.likesCount || 0;
+
+  // Local state for optimistic updates
+  const [optimisticIsLiked, setOptimisticIsLiked] = useState(isLiked);
+  const [optimisticLikesCount, setOptimisticLikesCount] = useState(likesCount);
+
+  // Update local state when real data changes
   React.useEffect(() => {
-    if (pin) {
-      setIsLiked(pin.isLiked);
-      setLikesCount(pin.likes);
-    }
-  }, [pin]);
+    setOptimisticIsLiked(isLiked);
+    setOptimisticLikesCount(likesCount);
+  }, [isLiked, likesCount]);
 
   const handleLikeToggle = async () => {
-    // TODO: Implement real like/unlike functionality
-    const newLikedState = !isLiked;
-    setIsLiked(newLikedState);
-    setLikesCount((prev) => (newLikedState ? prev + 1 : prev - 1));
+    if (!isAuthenticated || !user) {
+      authModal.openModal("login");
+      return;
+    }
+
+    const newLikedState = !optimisticIsLiked;
+
+    // Optimistically update UI
+    setOptimisticIsLiked(newLikedState);
+    setOptimisticLikesCount((prev: number) =>
+      newLikedState ? prev + 1 : prev - 1
+    );
+
+    try {
+      await likeMutation.mutate({
+        userId: user.id,
+        isCurrentlyLiked: optimisticIsLiked,
+      });
+    } catch (error) {
+      // Revert optimistic update on error
+      setOptimisticIsLiked(!newLikedState);
+      setOptimisticLikesCount((prev: number) =>
+        newLikedState ? prev - 1 : prev + 1
+      );
+      console.error("Failed to toggle like:", error);
+    }
+  };
+
+  const handleCommentSubmit = async () => {
+    if (!isAuthenticated || !user) {
+      authModal.openModal("login");
+      return;
+    }
+
+    // Validate comment
+    const validation = validateComment(commentText);
+    if (!validation.isValid) {
+      setCommentError(validation.error || "Invalid comment");
+      return;
+    }
+
+    setCommentError(null);
+
+    try {
+      await commentMutation.mutate({
+        userId: user.id,
+        content: commentText.trim(),
+      });
+      setCommentText("");
+    } catch (error: any) {
+      console.error("Failed to add comment:", error);
+      setCommentError(
+        error.response?.data?.message || "Failed to post comment"
+      );
+    }
+  };
+
+  const handleCommentTextChange = (
+    e: React.ChangeEvent<HTMLTextAreaElement>
+  ) => {
+    setCommentText(e.target.value);
+    if (commentError) {
+      setCommentError(null); // Clear error when user starts typing
+    }
+  };
+
+  const handleDeleteComment = async (commentId: number) => {
+    if (!isAuthenticated || !user) return;
+
+    // Simple confirmation dialog
+    if (!window.confirm("Are you sure you want to delete this comment?")) {
+      return;
+    }
+
+    try {
+      await deleteCommentMutation.mutate(commentId);
+    } catch (error: any) {
+      console.error("Failed to delete comment:", error);
+      alert("Failed to delete comment. Please try again.");
+    }
   };
 
   if (isLoading) {
@@ -123,16 +222,16 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
             {/* Like Button Overlay */}
             <div className="absolute top-3 sm:top-4 right-3 sm:right-4">
               <Button
-                variant={isLiked ? "primary" : "secondary"}
+                variant={optimisticIsLiked ? "primary" : "secondary"}
                 size="md"
                 icon={
                   <HeartIcon
-                    className={`h-4 w-4 sm:h-5 sm:w-5 ${isLiked ? "fill-current" : ""}`}
+                    className={`h-4 w-4 sm:h-5 sm:w-5 ${optimisticIsLiked ? "fill-current" : ""}`}
                   />
                 }
-                className={`rounded-full shadow-lg text-sm sm:text-base min-h-[44px] ${isLiked ? "bg-red-500 hover:bg-red-600 text-white" : ""}`}
+                className={`rounded-full shadow-lg text-sm sm:text-base min-h-[44px] ${optimisticIsLiked ? "bg-red-500 hover:bg-red-600 text-white" : ""}`}
                 onClick={handleLikeToggle}>
-                {isLiked ? "Liked" : "Like"}
+                {optimisticIsLiked ? "Liked" : "Like"}
               </Button>
             </div>
           </div>
@@ -145,12 +244,12 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
                 size="sm"
                 icon={
                   <HeartIcon
-                    className={`h-4 w-4 sm:h-5 sm:w-5 ${isLiked ? "fill-current text-red-500" : ""}`}
+                    className={`h-4 w-4 sm:h-5 sm:w-5 ${optimisticIsLiked ? "fill-current text-red-500" : ""}`}
                   />
                 }
                 className="text-text-secondary hover:text-primary text-sm sm:text-base min-h-[44px] sm:min-h-auto"
                 onClick={handleLikeToggle}>
-                {likesCount}
+                {optimisticLikesCount}
               </Button>
               <Button
                 variant="ghost"
@@ -232,24 +331,71 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
 
             {/* Add Comment */}
             <div className="mb-4 sm:mb-6">
-              <div className="flex space-x-2 sm:space-x-3">
-                <Avatar name="User" size="sm" />
-                <div className="flex-1">
-                  <textarea
-                    placeholder="Add a comment..."
-                    className="w-full p-3 bg-card border border-border rounded-lg focus:outline-none focus:border-primary resize-none text-sm sm:text-base min-h-[88px]"
-                    rows={3}
-                  />
-                  <div className="flex justify-end mt-2">
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      className="min-h-[44px] sm:min-h-auto text-sm">
-                      Post Comment
-                    </Button>
+              {isAuthenticated ? (
+                <div className="flex space-x-2 sm:space-x-3">
+                  <Avatar name={user?.username || "User"} size="sm" />
+                  <div className="flex-1">
+                    <textarea
+                      placeholder="Add a comment..."
+                      value={commentText}
+                      onChange={handleCommentTextChange}
+                      className={`w-full p-3 bg-card border rounded-lg focus:outline-none resize-none text-sm sm:text-base min-h-[88px] ${
+                        commentError
+                          ? "border-red-500 focus:border-red-500"
+                          : "border-border focus:border-primary"
+                      }`}
+                      rows={3}
+                      maxLength={500}
+                    />
+
+                    {/* Error message and character count */}
+                    <div className="flex justify-between items-center mt-2">
+                      <div className="flex-1">
+                        {commentError && (
+                          <p className="text-red-500 text-xs">{commentError}</p>
+                        )}
+                      </div>
+                      <div className="flex items-center space-x-3">
+                        <span
+                          className={`text-xs ${
+                            commentText.length > 450
+                              ? "text-red-500"
+                              : "text-text-tertiary"
+                          }`}>
+                          {commentText.length}/500
+                        </span>
+                        <Button
+                          variant="primary"
+                          size="sm"
+                          disabled={
+                            !commentText.trim() ||
+                            commentMutation.isPending ||
+                            !validateComment(commentText).isValid
+                          }
+                          onClick={handleCommentSubmit}
+                          className="min-h-[44px] sm:min-h-auto text-sm">
+                          {commentMutation.isPending
+                            ? "Posting..."
+                            : "Post Comment"}
+                        </Button>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
+              ) : (
+                <div className="flex flex-col items-center py-6 bg-card rounded-lg border border-border">
+                  <p className="text-text-secondary mb-3 text-sm">
+                    Sign in to add a comment
+                  </p>
+                  <Button
+                    variant="primary"
+                    size="sm"
+                    onClick={() => authModal.openModal("login")}
+                    className="min-h-[44px] sm:min-h-auto">
+                    Sign In
+                  </Button>
+                </div>
+              )}
             </div>
 
             {/* Comments List */}
@@ -258,20 +404,34 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
                 pin.comments.map((comment) => (
                   <div key={comment.id} className="flex space-x-2 sm:space-x-3">
                     <Avatar
-                      name={`User ${comment.userId || "Anonymous"}`}
+                      name={comment.user?.username || "Anonymous"}
                       size="sm"
                     />
                     <div className="flex-1 min-w-0">
                       <div className="bg-card rounded-lg p-3">
                         <div className="flex items-center justify-between mb-1">
                           <h4 className="font-medium text-text-primary text-xs sm:text-sm truncate">
-                            {comment.userId
-                              ? `User ${comment.userId}`
-                              : "Anonymous"}
+                            {comment.user?.username || "Anonymous"}
                           </h4>
-                          <span className="text-xs text-text-tertiary flex-shrink-0 ml-2">
-                            {new Date(comment.createdAt).toLocaleDateString()}
-                          </span>
+                          <div className="flex items-center space-x-2">
+                            <span className="text-xs text-text-tertiary flex-shrink-0">
+                              {formatRelativeTime(comment.createdAt)}
+                            </span>
+                            {/* Delete button - only show for comment owner */}
+                            {isAuthenticated &&
+                              user &&
+                              comment.userId === user.id && (
+                                <button
+                                  onClick={() =>
+                                    handleDeleteComment(comment.id)
+                                  }
+                                  disabled={deleteCommentMutation.isPending}
+                                  className="text-text-tertiary hover:text-red-500 transition-colors p-1 rounded min-h-[32px] min-w-[32px] flex items-center justify-center"
+                                  title="Delete comment">
+                                  <span className="text-xs">✕</span>
+                                </button>
+                              )}
+                          </div>
                         </div>
                         <p className="text-text-secondary text-xs sm:text-sm">
                           {comment.content}
@@ -291,6 +451,13 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
           </div>
         </div>
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={authModal.isOpen}
+        onClose={authModal.closeModal}
+        initialMode={authModal.mode}
+      />
     </>
   );
 };

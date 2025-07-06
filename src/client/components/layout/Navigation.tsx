@@ -8,13 +8,22 @@ import {
   XIcon,
 } from "../svgIcons";
 import { useGalleryContext } from "../../contexts/GalleryContext";
+import { useAuth } from "../../contexts/AuthContext";
+import { AuthModal } from "../auth/AuthModal";
+import { UserMenu } from "../auth/UserMenu";
+import { Button } from "../ui/Button";
 
 export const Navigation = () => {
   const { searchQuery, setSearchQuery, setSelectedCategory } =
     useGalleryContext();
+  const { isAuthenticated } = useAuth();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchInput, setSearchInput] = useState(searchQuery);
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [authModalMode, setAuthModalMode] = useState<"login" | "register">(
+    "login"
+  );
 
   // Sync local search input with context
   useEffect(() => {
@@ -39,6 +48,12 @@ export const Navigation = () => {
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSearchInput(e.target.value);
+  };
+
+  const openAuthModal = (mode: "login" | "register") => {
+    setAuthModalMode(mode);
+    setIsAuthModalOpen(true);
+    setIsMenuOpen(false); // Close mobile menu if open
   };
 
   return (
@@ -81,7 +96,7 @@ export const Navigation = () => {
                 <button
                   type="button"
                   onClick={clearSearch}
-                  className="absolute right-2 top-2 text-text-tertiary hover:text-text-primary transition-colors p-1 rounded-full hover:bg-card-hover">
+                  className="absolute right-2.5 top-0.5 text-text-tertiary hover:text-text-primary transition-colors p-1 rounded-full hover:bg-card-hover">
                   ✕
                 </button>
               )}
@@ -105,13 +120,28 @@ export const Navigation = () => {
               className="text-text-primary hover:text-primary transition-colors p-2 min-h-[44px] min-w-[44px] flex items-center justify-center">
               <BellIcon className="w-5 h-5" />
             </a>
-            <a
-              href="#"
-              className="text-text-primary hover:text-primary transition-colors min-h-[44px] min-w-[44px] flex items-center justify-center">
-              <div className="bg-accent w-7 h-7 lg:w-8 lg:h-8 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                U
+
+            {/* Authentication section */}
+            {isAuthenticated ? (
+              <UserMenu />
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => openAuthModal("login")}
+                  className="text-text-primary hover:text-primary">
+                  Sign In
+                </Button>
+                <Button
+                  variant="primary"
+                  size="sm"
+                  onClick={() => openAuthModal("register")}
+                  className="hidden lg:flex">
+                  Sign Up
+                </Button>
               </div>
-            </a>
+            )}
           </div>
 
           {/* Mobile Menu Button */}
@@ -147,7 +177,7 @@ export const Navigation = () => {
                 <button
                   type="button"
                   onClick={clearSearch}
-                  className="absolute right-2 top-2.5 text-text-tertiary hover:text-text-primary transition-colors p-1.5 rounded-full hover:bg-card-hover min-h-[32px] min-w-[32px] flex items-center justify-center">
+                  className="absolute right-2 top-0.5 text-text-tertiary hover:text-text-primary transition-colors p-1.5 rounded-full hover:bg-card-hover min-h-[32px] min-w-[32px] flex items-center justify-center">
                   ✕
                 </button>
               )}
@@ -158,37 +188,90 @@ export const Navigation = () => {
         {/* Mobile Menu */}
         {isMenuOpen && (
           <div className="sm:hidden py-3 border-t border-border">
-            <div className="grid grid-cols-4 gap-1">
-              <a
-                href="#"
-                className="flex flex-col items-center text-text-primary hover:text-primary transition-colors p-3 min-h-[60px] rounded-lg hover:bg-card-hover">
-                <HomeIcon className="w-5 h-5 mb-1" />
-                <span className="text-xs">Home</span>
-              </a>
-              <a
-                href="#"
-                className="flex flex-col items-center text-text-primary hover:text-primary transition-colors p-3 min-h-[60px] rounded-lg hover:bg-card-hover">
-                <ChatIcon className="w-5 h-5 mb-1" />
-                <span className="text-xs">Chat</span>
-              </a>
-              <a
-                href="#"
-                className="flex flex-col items-center text-text-primary hover:text-primary transition-colors p-3 min-h-[60px] rounded-lg hover:bg-card-hover">
-                <BellIcon className="w-5 h-5 mb-1" />
-                <span className="text-xs">Alerts</span>
-              </a>
-              <a
-                href="#"
-                className="flex flex-col items-center text-text-primary hover:text-primary transition-colors p-3 min-h-[60px] rounded-lg hover:bg-card-hover">
-                <div className="bg-accent w-6 h-6 rounded-full flex items-center justify-center text-white font-bold text-xs mb-1">
-                  U
+            {isAuthenticated ? (
+              <div className="space-y-3">
+                {/* User info section */}
+                <div className="px-3 pb-3 border-b border-border">
+                  <UserMenu className="w-full" isMobile={true} />
                 </div>
-                <span className="text-xs">Profile</span>
-              </a>
-            </div>
+
+                {/* Navigation links */}
+                <div className="grid grid-cols-3 gap-1 px-3">
+                  <a
+                    href="#"
+                    className="flex flex-col items-center text-text-primary hover:text-primary transition-colors p-3 min-h-[60px] rounded-lg hover:bg-card-hover">
+                    <HomeIcon className="w-5 h-5 mb-1" />
+                    <span className="text-xs">Home</span>
+                  </a>
+                  <a
+                    href="#"
+                    className="flex flex-col items-center text-text-primary hover:text-primary transition-colors p-3 min-h-[60px] rounded-lg hover:bg-card-hover">
+                    <ChatIcon className="w-5 h-5 mb-1" />
+                    <span className="text-xs">Chat</span>
+                  </a>
+                  <a
+                    href="#"
+                    className="flex flex-col items-center text-text-primary hover:text-primary transition-colors p-3 min-h-[60px] rounded-lg hover:bg-card-hover">
+                    <BellIcon className="w-5 h-5 mb-1" />
+                    <span className="text-xs">Alerts</span>
+                  </a>
+                </div>
+              </div>
+            ) : (
+              <div className="space-y-3 px-3">
+                {/* Auth buttons */}
+                <div className="flex flex-col space-y-2">
+                  <Button
+                    variant="primary"
+                    size="lg"
+                    onClick={() => openAuthModal("register")}
+                    className="w-full">
+                    Sign Up
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="lg"
+                    onClick={() => openAuthModal("login")}
+                    className="w-full">
+                    Sign In
+                  </Button>
+                </div>
+
+                {/* Navigation links */}
+                <div className="pt-3 border-t border-border">
+                  <div className="grid grid-cols-3 gap-1">
+                    <a
+                      href="#"
+                      className="flex flex-col items-center text-text-primary hover:text-primary transition-colors p-3 min-h-[60px] rounded-lg hover:bg-card-hover">
+                      <HomeIcon className="w-5 h-5 mb-1" />
+                      <span className="text-xs">Home</span>
+                    </a>
+                    <a
+                      href="#"
+                      className="flex flex-col items-center text-text-primary hover:text-primary transition-colors p-3 min-h-[60px] rounded-lg hover:bg-card-hover">
+                      <ChatIcon className="w-5 h-5 mb-1" />
+                      <span className="text-xs">Chat</span>
+                    </a>
+                    <a
+                      href="#"
+                      className="flex flex-col items-center text-text-primary hover:text-primary transition-colors p-3 min-h-[60px] rounded-lg hover:bg-card-hover">
+                      <BellIcon className="w-5 h-5 mb-1" />
+                      <span className="text-xs">Alerts</span>
+                    </a>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         )}
       </div>
+
+      {/* Auth Modal */}
+      <AuthModal
+        isOpen={isAuthModalOpen}
+        onClose={() => setIsAuthModalOpen(false)}
+        initialMode={authModalMode}
+      />
     </nav>
   );
 };

@@ -2,6 +2,7 @@ import { Router } from "express";
 import {
   getCommentsByImage,
   addComment,
+  deleteComment,
 } from "../controllers/image.controller.js";
 import {
   likeImage,
@@ -28,6 +29,7 @@ router.get("/:id/details", optionalAuth, handleGetImage); // /api/images/:id/det
 // Comments /api/images/
 router.get("/:id/comments", getCommentsByImage);
 router.post("/:id/comments", authenticateToken, addComment);
+router.delete("/:id/comments/:commentId", authenticateToken, deleteComment);
 
 // Likes /api/images/
 router.get("/:id/likes", optionalAuth, getLikesForImage);

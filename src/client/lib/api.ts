@@ -83,6 +83,11 @@ export const imageApi = {
     return response.data;
   },
 
+  // Delete comment from an image
+  deleteComment: async (imageId: string, commentId: number): Promise<void> => {
+    await api.delete(`/images/${imageId}/comments/${commentId}`);
+  },
+
   // Get likes for an image
   getLikes: async (
     imageId: string,

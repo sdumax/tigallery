@@ -38,6 +38,10 @@ export interface Comment {
   userId: number | null;
   content: string;
   createdAt: string;
+  user?: {
+    id: number;
+    username: string;
+  } | null;
 }
 
 export interface Like {

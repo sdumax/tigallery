@@ -55,7 +55,7 @@ export const PinGrid = () => {
 
   const handleLikeToggle = (id: string, isLiked: boolean) => {
     console.log(`Pin ${id} ${isLiked ? "liked" : "unliked"}`);
-    // TODO: Implement real like functionality with user authentication
+    // Like functionality is now handled within PinCard component
   };
 
   if (isLoading) {
@@ -128,6 +128,7 @@ export const PinGrid = () => {
             author={image.user.name || image.user.username}
             blurHash={image.blur_hash}
             isLiked={false} // TODO: Get real like status from user data
+            likesCount={image.likes}
             onLikeToggle={handleLikeToggle}
           />
         ))}
