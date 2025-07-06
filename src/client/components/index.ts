@@ -10,3 +10,6 @@ export { PinGrid } from "./ui/PinGrid";
 
 // Page components
 export { PinDetails } from "./pages/PinDetails";
+
+// SVG Icons
+export * from "./svgIcons";
