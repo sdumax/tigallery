@@ -41,7 +41,7 @@ if (isProduction) {
   app.use(express.static(distPath));
 
   // Handle client-side routing
-  app.get("*", (req, res) => {
+  app.get("/{*any}", (req, res) => {
     res.sendFile(path.join(distPath, "index.html"));
   });
 

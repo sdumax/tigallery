@@ -10,7 +10,7 @@
     "build:client": "vite build",
     "build:server": "yarn prisma:generate",
     "postinstall": "yarn prisma:generate",
-    "prisma:generate": "prisma generate --schema=src/server/prisma/schema.prisma",
+    "prisma:generate": "prisma generate --no-engine --schema=src/server/prisma/schema.prisma",
     "prisma:deploy": "prisma migrate deploy --schema=src/server/prisma/schema.prisma",
     "prisma:studio": "prisma studio --schema=src/server/prisma/schema.prisma"
   },
