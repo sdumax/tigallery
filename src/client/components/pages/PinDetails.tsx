@@ -3,6 +3,7 @@ import { BackIcon, HeartIcon, CommentIcon, ShareIcon } from "../svgIcons";
 import { Avatar } from "../ui/Avatar";
 import { Button } from "../ui/Button";
 import { Tag } from "../ui/Tag";
+import { UnsplashBlurImage } from "../ui/UnsplashBlurImage";
 
 interface PinDetailsProps {
   pinId: string;
@@ -102,9 +103,10 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
         {/* Image Section */}
         <div className="space-y-4">
           <div className="relative rounded-lg overflow-hidden bg-card">
-            <img
+            <UnsplashBlurImage
               src={pin.imageUrl}
               alt={pin.title}
+              animationType="progressive"
               className="w-full h-auto object-cover"
             />
             {/* Like Button Overlay */}

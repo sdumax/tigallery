@@ -3,6 +3,7 @@ import { Link } from "@tanstack/react-router";
 import { HeartIcon } from "../svgIcons";
 import { Button } from "./Button";
 import { Avatar } from "./Avatar";
+import { UnsplashBlurImage } from "./UnsplashBlurImage";
 
 interface PinCardProps {
   id: string;
@@ -36,24 +37,28 @@ export const PinCard: React.FC<PinCardProps> = ({
     <div className="pin-card bg-card group">
       <Link to="/pin/$pinId" params={{ pinId: id }} className="block">
         <div className="relative">
-          <img
+          <UnsplashBlurImage
             src={imageUrl}
             alt={alt}
+            animationType="crossfade"
             className="w-full transition-transform group-hover:scale-105"
           />
           <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
             <Button
               variant={isLiked ? "primary" : "secondary"}
               size="sm"
-              icon={<HeartIcon className={`h-4 w-4 ${isLiked ? 'fill-current' : ''}`} />}
-              className={`rounded-full shadow-lg ${isLiked ? 'bg-red-500 hover:bg-red-600 text-white' : ''}`}
+              icon={
+                <HeartIcon
+                  className={`h-4 w-4 ${isLiked ? "fill-current" : ""}`}
+                />
+              }
+              className={`rounded-full shadow-lg ${isLiked ? "bg-red-500 hover:bg-red-600 text-white" : ""}`}
               onClick={(e) => {
                 e.preventDefault();
                 e.stopPropagation();
                 handleLikeToggle();
-              }}
-            >
-              {isLiked ? 'Liked' : 'Like'}
+              }}>
+              {isLiked ? "Liked" : "Like"}
             </Button>
           </div>
         </div>

@@ -3,6 +3,7 @@ import { PinCard } from "./PinCard";
 import { useGallery } from "../../hooks/useQueries";
 import { useSearchWithDebounce } from "../../hooks/useQueries";
 import { useGalleryContext } from "../../contexts/GalleryContext";
+import { LoadingGrid, SearchLoadingGrid } from "./LoadingComponents";
 
 export const PinGrid = () => {
   const { searchQuery, isSearching, setIsSearching } = useGalleryContext();
@@ -59,15 +60,25 @@ export const PinGrid = () => {
 
   if (isLoading) {
     return (
-      <div className="flex justify-center items-center py-20">
-        <div className="space-y-4 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="text-text-secondary">
-            {shouldSearch
-              ? `Searching for "${searchQuery}"...`
-              : "Loading amazing photos..."}
-          </p>
+      <div className="space-y-6">
+        {/* Loading message */}
+        <div className="text-center py-8">
+          <div className="space-y-3">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="text-text-secondary">
+              {shouldSearch
+                ? `Searching for "${searchQuery}"...`
+                : "Loading amazing photos..."}
+            </p>
+          </div>
         </div>
+
+        {/* Loading grid */}
+        {shouldSearch ? (
+          <SearchLoadingGrid count={8} />
+        ) : (
+          <LoadingGrid count={12} />
+        )}
       </div>
     );
   }

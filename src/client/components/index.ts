@@ -10,6 +10,13 @@ export { PinGrid } from "./ui/PinGrid";
 export { Avatar } from "./ui/Avatar";
 export { Button } from "./ui/Button";
 export { Tag } from "./ui/Tag";
+export { BlurImage, ProgressiveBlurImage } from "./ui/BlurImage";
+export { UnsplashBlurImage, ImageSkeleton } from "./ui/UnsplashBlurImage";
+export {
+  LoadingGrid,
+  SearchLoadingGrid,
+  PinDetailsLoading,
+} from "./ui/LoadingComponents";
 
 // Page components
 export { PinDetails } from "./pages/PinDetails";
