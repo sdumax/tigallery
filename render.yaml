@@ -1,0 +1,17 @@
+# Exported from Render on 2025-07-06T22:23:34Z
+services:
+- type: web
+  name: tigallery
+  runtime: node
+  repo: https://github.com/sdumax/tigallery
+  plan: free
+  envVars:
+  - key: DATABASE_URL
+    sync: false
+  - key: UNSPLASH_ACCESS_KEY
+    sync: false
+  region: oregon
+  buildCommand: yarn --frozen-lockfile install; yarn build
+  startCommand: yarn start
+  autoDeployTrigger: commit
+version: "1"

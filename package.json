@@ -6,9 +6,12 @@
   "scripts": {
     "dev": "nodemon -w src/server -x tsx src/server/main.ts",
     "start": "NODE_ENV=production tsx src/server/main.ts",
-    "build": "vite build",
-    "prisma:migrate": "prisma migrate dev --schema=src/server/prisma/schema.prisma",
+    "build": "yarn build:client && yarn build:server",
+    "build:client": "vite build",
+    "build:server": "yarn prisma:generate",
+    "postinstall": "yarn prisma:generate",
     "prisma:generate": "prisma generate --schema=src/server/prisma/schema.prisma",
+    "prisma:deploy": "prisma migrate deploy --schema=src/server/prisma/schema.prisma",
     "prisma:studio": "prisma studio --schema=src/server/prisma/schema.prisma"
   },
   "dependencies": {
