@@ -1,42 +1,86 @@
-#root {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap");
+@import "tailwindcss";
+
+
+@theme {
+  /* Pinterest-inspired color scheme */
+  --color-primary: #e60023; /* Pinterest red */
+  --color-primary-hover: #ad081b; /* Darker red for hover states */
+  --color-background: #111111; /* Deep dark background */
+  --color-card: #1a1a1a; /* Card background */
+  --color-card-hover: #252525; /* Card hover state */
+  --color-text-primary: #ffffff; /* Main text */
+  --color-text-secondary: #a8a8a8; /* Secondary text */
+  --color-text-tertiary: #6a6a6a; /* Tertiary/inactive text */
+  --color-border: #2d2d2d; /* Borders and dividers */
+  --color-accent: #4287f5; /* Blue accent */
 }
 
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
-}
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
-}
-.logo.react:hover {
-  filter: drop-shadow(0 0 2em #61dafbaa);
+body {
+  font-family: "Roboto", sans-serif;
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
 }
 
-@keyframes logo-spin {
-  from {
-    transform: rotate(0deg);
+/* Pinterest-like grid layout */
+.pinterest-grid {
+  column-count: 5;
+  column-gap: 16px;
+}
+
+@media (max-width: 1280px) {
+  .pinterest-grid {
+    column-count: 4;
   }
-  to {
-    transform: rotate(360deg);
+}
+
+@media (max-width: 1024px) {
+  .pinterest-grid {
+    column-count: 3;
   }
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  a:nth-of-type(2) .logo {
-    animation: logo-spin infinite 20s linear;
+@media (max-width: 768px) {
+  .pinterest-grid {
+    column-count: 2;
   }
 }
 
-.card {
-  padding: 2em;
+@media (max-width: 480px) {
+  .pinterest-grid {
+    column-count: 1;
+  }
 }
 
-.read-the-docs {
-  color: #888;
+.pin-card {
+  break-inside: avoid;
+  margin-bottom: 16px;
+  border-radius: 16px;
+  overflow: hidden;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+.pin-card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-background);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--color-border);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-text-tertiary);
 }

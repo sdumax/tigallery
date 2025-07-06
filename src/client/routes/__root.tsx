@@ -1,19 +1,17 @@
-import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
+import { createRootRoute, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { Navigation, Footer } from "../components";
 
 export const Route = createRootRoute({
   component: () => (
     <>
-      <header className="bg-gray-800 text-white p-4">
-        <nav className="container mx-auto">
-          <Link to="/" className="text-lg font-bold">
-            TIG
-          </Link>
-        </nav>
-      </header>
-      <main className="container mx-auto p-4">
-        <Outlet />
+      <Navigation />
+      <main className="py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <Outlet />
+        </div>
       </main>
+      <Footer />
       <TanStackRouterDevtools />
     </>
   ),
