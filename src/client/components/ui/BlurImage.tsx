@@ -86,12 +86,7 @@ export const BlurImage: React.FC<BlurImageProps> = ({
   const renderPlaceholder = () => {
     switch (placeholder) {
       case "shimmer":
-        return (
-          <div
-            className={`bg-gradient-to-r from-gray-200 via-gray-300 to-gray-200 animate-pulse ${className}`}>
-            <div className="w-full h-full bg-gradient-to-r from-transparent via-white to-transparent animate-shimmer"></div>
-          </div>
-        );
+        return <div className={`skeleton-loading ${className}`}></div>;
       case "empty":
         return <div className={`bg-gray-200 ${className}`} />;
       case "blur":

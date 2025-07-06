@@ -28,12 +28,6 @@ export const LoadingGrid: React.FC<LoadingGridProps> = ({
             {/* Title skeleton */}
             <div className="skeleton-loading h-4 w-3/4 rounded"></div>
 
-            {/* Description skeleton */}
-            <div className="space-y-2">
-              <div className="skeleton-loading h-3 w-full rounded"></div>
-              <div className="skeleton-loading h-3 w-2/3 rounded"></div>
-            </div>
-
             {/* Author skeleton */}
             <div className="flex items-center space-x-3 pt-2">
               <div className="skeleton-loading w-8 h-8 rounded-full"></div>
@@ -58,7 +52,10 @@ export const SearchLoadingGrid: React.FC<LoadingGridProps> = ({
         <div key={index} className="space-y-2">
           <ImageSkeleton className="w-full h-48 rounded-lg" />
           <div className="skeleton-loading h-4 w-3/4 rounded"></div>
-          <div className="skeleton-loading h-3 w-1/2 rounded"></div>
+          <div className="flex items-center space-x-2 mt-2">
+            <div className="skeleton-loading w-6 h-6 rounded-full"></div>
+            <div className="skeleton-loading h-3 w-1/2 rounded"></div>
+          </div>
         </div>
       ))}
     </div>
@@ -76,7 +73,7 @@ export const PinDetailsLoading: React.FC = () => {
         {/* Action buttons skeleton */}
         <div className="flex items-center space-x-4">
           <div className="skeleton-loading h-10 w-20 rounded-full"></div>
-          <div className="skeleton-loading h-10 w-20 rounded-full"></div>
+          <div className="bg-gray-200 animate-subtle-pulse h-10 w-20 rounded-full"></div>
           <div className="skeleton-loading h-10 w-20 rounded-full"></div>
         </div>
       </div>

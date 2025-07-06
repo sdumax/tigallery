@@ -174,7 +174,7 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
         <div className="space-y-6">
           {/* Pin Info */}
           <div>
-            <h1 className="text-3xl font-bold text-text-primary mb-4">
+            <h1 className="text-3xl font-bold text-text-primary mb-4 truncate w-1/2">
               {pin.title}
             </h1>
             <p className="text-text-secondary leading-relaxed">
