@@ -49,7 +49,7 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
     initialIsLiked: pin?.isLiked,
     initialLikesCount: pin?.likes || 0,
   });
-console.log(pin?.likes, "Pin likes count");
+  
   const handleCommentSubmit = async () => {
     if (!isAuthenticated || !user) {
       authModal.openModal("login");
