@@ -6,9 +6,8 @@ import { Avatar } from "./Avatar";
 import { BlurHashImageWithCrossfade } from "./BlurHashImage";
 import { useAuth } from "../../contexts/AuthContext";
 import { useToggleLikeMutation } from "../../lib/mutations";
-import { useAuthModal } from "../../hooks/useAuthModal";
+import { useAuthModal } from "../../contexts/AuthModalContext";
 import { useImageLikeStatus } from "../../hooks/useLikes";
-import { AuthModal } from "../auth/AuthModal";
 
 interface PinCardProps {
   id: string;
@@ -140,13 +139,6 @@ export const PinCard: React.FC<PinCardProps> = ({
           </div>
         </div>
       </Link>
-
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={authModal.isOpen}
-        onClose={authModal.closeModal}
-        initialMode={authModal.mode}
-      />
     </div>
   );
 };

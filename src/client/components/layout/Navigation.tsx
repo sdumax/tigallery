@@ -9,7 +9,7 @@ import {
 } from "../svgIcons";
 import { useGalleryContext } from "../../contexts/GalleryContext";
 import { useAuth } from "../../contexts/AuthContext";
-import { AuthModal } from "../auth/AuthModal";
+import { useAuthModal } from "../../contexts/AuthModalContext";
 import { UserMenu } from "../auth/UserMenu";
 import { Button } from "../ui/Button";
 
@@ -17,13 +17,10 @@ export const Navigation = () => {
   const { searchQuery, setSearchQuery, setSelectedCategory } =
     useGalleryContext();
   const { isAuthenticated } = useAuth();
+  const authModal = useAuthModal();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchInput, setSearchInput] = useState(searchQuery);
-  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [authModalMode, setAuthModalMode] = useState<"login" | "register">(
-    "login"
-  );
 
   // Sync local search input with context
   useEffect(() => {
@@ -51,8 +48,7 @@ export const Navigation = () => {
   };
 
   const openAuthModal = (mode: "login" | "register") => {
-    setAuthModalMode(mode);
-    setIsAuthModalOpen(true);
+    authModal.openModal(mode);
     setIsMenuOpen(false); // Close mobile menu if open
   };
 
@@ -265,13 +261,6 @@ export const Navigation = () => {
           </div>
         )}
       </div>
-
-      {/* Auth Modal */}
-      <AuthModal
-        isOpen={isAuthModalOpen}
-        onClose={() => setIsAuthModalOpen(false)}
-        initialMode={authModalMode}
-      />
     </nav>
   );
 };
