@@ -1,13 +1,10 @@
-import React, { useState, useEffect } from "react";
+import React from "react";
 import { Link } from "@tanstack/react-router";
 import { HeartIcon } from "../svgIcons";
 import { Button } from "./Button";
 import { Avatar } from "./Avatar";
 import { BlurHashImageWithCrossfade } from "./BlurHashImage";
-import { useAuth } from "../../contexts/AuthContext";
-import { useToggleLikeMutation } from "../../lib/mutations";
-import { useAuthModal } from "../../contexts/AuthModalContext";
-import { useImageLikeStatus } from "../../hooks/useLikes";
+import { useImageLikeHandler } from "../../hooks/useImageLikeHandler";
 
 interface PinCardProps {
   id: string;
@@ -32,113 +29,126 @@ export const PinCard: React.FC<PinCardProps> = ({
   likesCount = 0,
   onLikeToggle,
 }) => {
-  const { user, isAuthenticated } = useAuth();
-  const authModal = useAuthModal();
-  const likeMutation = useToggleLikeMutation(id);
+  const {
+    isLiked,
+    likesCount: currentLikesCount,
+    handleLikeToggle,
+    isPending,
+  } = useImageLikeHandler({
+    imageId: id,
+    initialIsLiked,
+    initialLikesCount: likesCount,
+    onLikeToggle,
+  });
 
-  // Get real-time like status for authenticated users
-  const likeStatus = useImageLikeStatus(id);
-
-  // Use real-time data if available, otherwise fall back to props
-  const isLiked = isAuthenticated ? likeStatus.isLiked : initialIsLiked;
-  const currentLikesCount =
-    isAuthenticated && likeStatus.likesCount > 0
-      ? likeStatus.likesCount
-      : likesCount;
-
-  // Local state for optimistic updates
-  const [optimisticIsLiked, setOptimisticIsLiked] = useState(isLiked);
-  const [optimisticLikesCount, setOptimisticLikesCount] =
-    useState(currentLikesCount);
-
-  // Update local state when real data changes
-  React.useEffect(() => {
-    setOptimisticIsLiked(isLiked);
-    setOptimisticLikesCount(currentLikesCount);
-  }, [isLiked, currentLikesCount]);
-
-  const handleLikeToggle = async (e: React.MouseEvent) => {
+  const handleLikeClick = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-
-    if (!isAuthenticated || !user) {
-      authModal.openModal("login");
-      return;
-    }
-
-    const newLikedState = !optimisticIsLiked;
-
-    // Optimistically update UI
-    setOptimisticIsLiked(newLikedState);
-    setOptimisticLikesCount((prev: number) =>
-      newLikedState ? prev + 1 : prev - 1
-    );
-
-    try {
-      await likeMutation.mutate({
-        userId: user.id,
-        isCurrentlyLiked: optimisticIsLiked,
-      });
-
-      // Call the optional callback for parent component updates
-      onLikeToggle?.(id, newLikedState);
-    } catch (error) {
-      // Revert optimistic update on error
-      setOptimisticIsLiked(!newLikedState);
-      setOptimisticLikesCount((prev: number) =>
-        newLikedState ? prev - 1 : prev + 1
-      );
-      console.error("Failed to toggle like:", error);
-    }
+    await handleLikeToggle();
   };
+
   return (
     <div className="pin-card bg-card group">
-      <Link to="/pin/$pinId" params={{ pinId: id }} className="block">
-        <div className="relative">
-          <BlurHashImageWithCrossfade
-            src={imageUrl}
-            alt={alt}
-            blurHash={blurHash}
-            className="w-full transition-transform group-hover:scale-105"
-          />
-          <div className="absolute top-2 sm:top-3 right-2 sm:right-3 opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
-            <Button
-              variant={optimisticIsLiked ? "primary" : "secondary"}
-              size="sm"
-              disabled={likeMutation.isPending}
-              icon={
-                <HeartIcon
-                  className={`h-3 w-3 sm:h-4 sm:w-4 ${optimisticIsLiked ? "fill-current" : ""}`}
-                />
-              }
-              className={`rounded-full shadow-lg text-xs sm:text-sm min-h-[36px] sm:min-h-auto ${optimisticIsLiked ? "bg-red-500 hover:bg-red-600 text-white" : ""}`}
-              onClick={handleLikeToggle}>
-              {likeMutation.isPending
-                ? "..."
-                : optimisticLikesCount > 0
-                  ? optimisticLikesCount.toLocaleString()
-                  : optimisticIsLiked
-                    ? "Liked"
-                    : "Like"}
-            </Button>
-          </div>
-        </div>
-        <div className="p-3 sm:p-4">
-          <h3
-            className="font-bold group-hover:text-primary transition-colors truncate text-sm sm:text-base"
-            title={title}>
-            {title}
-          </h3>
-          <div className="author-info mt-2">
-            <Avatar name={author} size="sm" className="flex-shrink-0" />
-            <span
-              className="text-text-secondary text-xs sm:text-sm truncate author-truncate"
-              title={author}>
-              {author}
-            </span>
-          </div>
-        </div>
-      </Link>
+      <PinCardLink id={id}>
+        <PinCardImage
+          imageUrl={imageUrl}
+          alt={alt}
+          blurHash={blurHash}
+          isLiked={isLiked}
+          likesCount={currentLikesCount}
+          isPending={isPending}
+          onLikeToggle={handleLikeClick}
+        />
+        <PinCardContent title={title} author={author} />
+      </PinCardLink>
     </div>
   );
 };
+
+const PinCardLink: React.FC<{ id: string; children: React.ReactNode }> = ({
+  id,
+  children,
+}) => (
+  <Link to="/pin/$pinId" params={{ pinId: id }} className="block">
+    {children}
+  </Link>
+);
+
+const PinCardImage: React.FC<{
+  imageUrl: string;
+  alt: string;
+  blurHash?: string;
+  isLiked: boolean;
+  likesCount: number;
+  isPending: boolean;
+  onLikeToggle: (e: React.MouseEvent) => void;
+}> = ({
+  imageUrl,
+  alt,
+  blurHash,
+  isLiked,
+  likesCount,
+  isPending,
+  onLikeToggle,
+}) => (
+  <div className="relative">
+    <BlurHashImageWithCrossfade
+      src={imageUrl}
+      alt={alt}
+      blurHash={blurHash}
+      className="w-full transition-transform group-hover:scale-105"
+    />
+    <PinCardLikeButton
+      isLiked={isLiked}
+      likesCount={likesCount}
+      isPending={isPending}
+      onLikeToggle={onLikeToggle}
+    />
+  </div>
+);
+
+// Component: PinCardLikeButton - Should go in /src/client/components/ui/PinCard/PinCardLikeButton.tsx
+const PinCardLikeButton: React.FC<{
+  isLiked: boolean;
+  likesCount: number;
+  isPending: boolean;
+  onLikeToggle: (e: React.MouseEvent) => void;
+}> = ({ isLiked, likesCount, isPending, onLikeToggle }) => (
+  <div className="absolute top-2 sm:top-3 right-2 sm:right-3 opacity-90 sm:opacity-0 sm:group-hover:opacity-100 transition-opacity">
+    <Button
+      variant={isLiked ? "primary" : "secondary"}
+      size="sm"
+      disabled={isPending}
+      icon={
+        <HeartIcon
+          className={`h-3 w-3 sm:h-4 sm:w-4 ${isLiked ? "fill-current" : ""}`}
+        />
+      }
+      className={`rounded-full shadow-lg text-xs sm:text-sm min-h-[36px] sm:min-h-auto ${isLiked ? "bg-red-500 hover:bg-red-600 text-white" : ""}`}
+      onClick={onLikeToggle}>
+      {isPending ? "..." : isLiked ? likesCount + 1 : likesCount}
+    </Button>
+  </div>
+);
+
+// Component: PinCardContent - Should go in /src/client/components/ui/PinCard/PinCardContent.tsx
+const PinCardContent: React.FC<{
+  title: string;
+  author: string;
+}> = ({ title, author }) => (
+  <div className="p-3 sm:p-4">
+    <h3
+      className="font-bold group-hover:text-primary transition-colors truncate text-sm sm:text-base"
+      title={title}>
+      {title}
+    </h3>
+    <div className="author-info mt-2">
+      <Avatar name={author} size="sm" className="flex-shrink-0" />
+      <span
+        className="text-text-secondary text-xs sm:text-sm truncate author-truncate"
+        title={author}>
+        {author}
+      </span>
+    </div>
+  </div>
+);

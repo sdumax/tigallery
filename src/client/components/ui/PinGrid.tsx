@@ -53,9 +53,7 @@ export const PinGrid = () => {
         error: galleryQuery.error,
       };
 
-  const handleLikeToggle = (id: string, isLiked: boolean) => {
-    // Like functionality is now handled within PinCard component
-  };
+
 
   if (isLoading) {
     return (
@@ -126,9 +124,7 @@ export const PinGrid = () => {
             title={image.alt_description || image.description || "Untitled"}
             author={image.user.name || image.user.username}
             blurHash={image.blur_hash}
-            isLiked={false} // TODO: Get real like status from user data
             likesCount={image.likes}
-            onLikeToggle={handleLikeToggle}
           />
         ))}
       </div>

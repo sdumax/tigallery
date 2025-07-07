@@ -5,6 +5,11 @@ import {
   getImages,
 } from "../services/unsplash.service.js";
 import { isValidUnsplashId } from "../utils/index.js";
+import {
+  sendValidationError,
+  sendSuccessResponse,
+  handleExternalApiError,
+} from "../utils/errorHandling.js";
 
 // GET /api/unsplash/search?query=cat&page=1
 export const handleSearch: RequestHandler<
@@ -15,17 +20,35 @@ export const handleSearch: RequestHandler<
 > = async (req, res) => {
   const { query, page } = req.query;
 
-  if (!query) {
-    res.status(400).json({ message: "Missing 'query' parameter" });
+  if (!query || query.trim().length === 0) {
+    sendValidationError(
+      res,
+      "Search query is required and cannot be empty",
+      "query"
+    );
+    return;
+  }
+
+  if (query.length > 200) {
+    sendValidationError(
+      res,
+      "Search query must be less than 200 characters",
+      "query"
+    );
+    return;
+  }
+
+  const pageNum = Number(page) || 1;
+  if (pageNum < 1 || pageNum > 1000) {
+    sendValidationError(res, "Page number must be between 1 and 1000", "page");
     return;
   }
 
   try {
-    const results = await searchImages(query, Number(page) || 1);
-    res.json(results);
+    const results = await searchImages(query.trim(), pageNum);
+    sendSuccessResponse(res, results, "Images retrieved successfully");
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to search Unsplash" });
+    handleExternalApiError(res, "handleSearch", error, "Unsplash");
   }
 };
 
@@ -36,16 +59,16 @@ export const handleGetImage: RequestHandler<{ id: string }> = async (
 ) => {
   const { id } = req.params;
 
-  if (!isValidUnsplashId(id)) {
-    res.status(400).json({ message: "Invalid image ID format" });
+  if (!id || !isValidUnsplashId(id)) {
+    sendValidationError(res, "Valid image ID is required", "id");
     return;
   }
+
   try {
     const image = await getImageById(id);
-    res.json(image);
+    sendSuccessResponse(res, image, "Image details retrieved successfully");
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to fetch image details" });
+    handleExternalApiError(res, "handleGetImage", error, "Unsplash");
   }
 };
 
@@ -58,11 +81,29 @@ export const handleGetImages: RequestHandler<
 > = async (req, res) => {
   const { page, perPage } = req.query;
 
+  const pageNum = Number(page) || 1;
+  const perPageNum = Number(perPage) || 10;
+
+  if (pageNum < 1 || pageNum > 1000) {
+    sendValidationError(res, "Page number must be between 1 and 1000", "page");
+    return;
+  }
+
+  if (perPageNum < 1 || perPageNum > 50) {
+    sendValidationError(
+      res,
+      "Items per page must be between 1 and 50",
+      "perPage"
+    );
+    return;
+  }
+
   try {
-    const images = await getImages(Number(page) || 1, Number(perPage) || 10);
-    res.json(images);
+    const images = await getImages(pageNum, perPageNum);
+    sendSuccessResponse(res, images, "Images retrieved successfully");
   } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to fetch images" });
+    handleExternalApiError(res, "handleGetImages", error, "Unsplash");
   }
 };
+
+// POST

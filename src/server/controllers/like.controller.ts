@@ -2,6 +2,17 @@ import { RequestHandler } from "express";
 import { prisma } from "../prisma/client.js";
 import { isValidUnsplashId } from "../utils/index.js";
 import { AuthenticatedRequest } from "../middleware/auth.middleware.js";
+import {
+  likeUnsplashImage,
+  unlikeUnsplashImage,
+} from "../services/unsplash.service.js";
+import {
+  sendValidationError,
+  sendSuccessResponse,
+  handleDatabaseError,
+  handleExternalApiError,
+  logError,
+} from "../utils/errorHandling.js";
 
 // Response type for like count
 type LikeCountResponse = {
@@ -17,13 +28,17 @@ export const likeImage = async (
   const { id: imageId } = req.params;
   const userId = req.user?.id;
 
-  if (!isValidUnsplashId(imageId)) {
-    res.status(400).json({ message: "Invalid image ID format" });
+  if (!imageId || !isValidUnsplashId(imageId)) {
+    sendValidationError(res, "Valid image ID is required", "imageId");
     return;
   }
 
   if (!userId) {
-    res.status(401).json({ message: "User not authenticated" });
+    res.status(401).json({
+      success: false,
+      message: "Authentication required",
+      timestamp: new Date().toISOString(),
+    });
     return;
   }
 
@@ -34,24 +49,40 @@ export const likeImage = async (
     });
 
     if (existingLike) {
-      res.status(400).json({ message: "Image already liked" });
+      res.status(409).json({
+        success: false,
+        message: "Image already liked by user",
+        timestamp: new Date().toISOString(),
+      });
       return;
     }
 
+    // Try to like the image on Unsplash (non-blocking)
+    try {
+      await likeUnsplashImage(imageId);
+    } catch (unsplashError) {
+      // Log the error but don't fail the request
+      logError("likeImage - Unsplash API", unsplashError, { imageId, userId });
+    }
+
+    // Store the like in our database
     await prisma.like.create({
       data: { imageId, userId },
     });
 
     const likesCount = await prisma.like.count({ where: { imageId } });
 
-    res.status(201).json({
-      message: "Image liked!",
-      likes: likesCount,
-      isLiked: true,
-    });
+    sendSuccessResponse(
+      res,
+      {
+        likes: likesCount,
+        isLiked: true,
+      },
+      "Image liked successfully",
+      201
+    );
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to like image" });
+    handleDatabaseError(res, "likeImage", error);
   }
 };
 
@@ -63,13 +94,17 @@ export const unlikeImage = async (
   const { id: imageId } = req.params;
   const userId = req.user?.id;
 
-  if (!isValidUnsplashId(imageId)) {
-    res.status(400).json({ message: "Invalid image ID format" });
+  if (!imageId || !isValidUnsplashId(imageId)) {
+    sendValidationError(res, "Valid image ID is required", "imageId");
     return;
   }
 
   if (!userId) {
-    res.status(401).json({ message: "User not authenticated" });
+    res.status(401).json({
+      success: false,
+      message: "Authentication required",
+      timestamp: new Date().toISOString(),
+    });
     return;
   }
 
@@ -79,22 +114,40 @@ export const unlikeImage = async (
     });
 
     if (!like) {
-      res.status(404).json({ message: "No like to remove" });
+      res.status(404).json({
+        success: false,
+        message: "Like not found for this user and image",
+        timestamp: new Date().toISOString(),
+      });
       return;
     }
 
+    // Try to unlike the image on Unsplash (non-blocking)
+    try {
+      await unlikeUnsplashImage(imageId);
+    } catch (unsplashError) {
+      // Log the error but don't fail the request
+      logError("unlikeImage - Unsplash API", unsplashError, {
+        imageId,
+        userId,
+      });
+    }
+
+    // Remove the like from our database
     await prisma.like.delete({ where: { id: like.id } });
 
     const likesCount = await prisma.like.count({ where: { imageId } });
 
-    res.status(200).json({
-      message: "Image unliked",
-      likes: likesCount,
-      isLiked: false,
-    });
+    sendSuccessResponse(
+      res,
+      {
+        likes: likesCount,
+        isLiked: false,
+      },
+      "Image unliked successfully"
+    );
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to unlike image" });
+    handleDatabaseError(res, "unlikeImage", error);
   }
 };
 
@@ -106,8 +159,8 @@ export const getLikesForImage = async (
   const { id: imageId } = req.params;
   const userId = req.user?.id;
 
-  if (!isValidUnsplashId(imageId)) {
-    res.status(400).json({ message: "Invalid image ID format" });
+  if (!imageId || !isValidUnsplashId(imageId)) {
+    sendValidationError(res, "Valid image ID is required", "imageId");
     return;
   }
 
@@ -122,12 +175,15 @@ export const getLikesForImage = async (
       isLiked = !!userLike;
     }
 
-    res.status(200).json({
-      likes: count,
-      isLiked,
-    });
+    sendSuccessResponse(
+      res,
+      {
+        likes: count,
+        isLiked,
+      },
+      "Like information retrieved successfully"
+    );
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to fetch likes" });
+    handleDatabaseError(res, "getLikesForImage", error);
   }
 };

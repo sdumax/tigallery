@@ -2,6 +2,11 @@ import { RequestHandler } from "express";
 import { prisma } from "../prisma/client.js";
 import { isValidUnsplashId } from "../utils/index.js";
 import { AuthenticatedRequest } from "../middleware/auth.middleware.js";
+import {
+  sendValidationError,
+  sendSuccessResponse,
+  handleDatabaseError,
+} from "../utils/errorHandling.js";
 
 // Types
 type Comment = {
@@ -31,7 +36,7 @@ export const getCommentsByImage: RequestHandler<
 
   // Validate imageId
   if (!isValidUnsplashId(imageId)) {
-    res.status(400).json({ message: "Invalid image ID format" });
+    sendValidationError(res, "Valid image ID is required", "imageId");
     return;
   }
 
@@ -48,10 +53,10 @@ export const getCommentsByImage: RequestHandler<
       },
       orderBy: { createdAt: "desc" },
     });
-    res.status(200).json(comments);
+
+    sendSuccessResponse(res, comments, "Comments retrieved successfully");
   } catch (error: unknown) {
-    console.error(error);
-    res.status(500).json({ message: "Failed to fetch comments" });
+    handleDatabaseError(res, "getCommentsByImage", error);
   }
 };
 

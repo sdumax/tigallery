@@ -77,9 +77,9 @@ export const useToggleLikeMutation = (imageId: string) => {
   return {
     mutate: (data: { userId: number; isCurrentlyLiked: boolean }) => {
       if (data.isCurrentlyLiked) {
-        unlikeImageMutation.mutate(data.userId);
+        unlikeImageMutation.mutateAsync(data.userId);
       } else {
-        likeImageMutation.mutate({ userId: data.userId });
+        likeImageMutation.mutateAsync({ userId: data.userId });
       }
     },
     isPending: likeImageMutation.isPending || unlikeImageMutation.isPending,

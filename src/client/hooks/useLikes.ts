@@ -15,7 +15,9 @@ export const useImageLikeStatus = (imageId: string) => {
 
   return {
     isLiked: likeQuery.data?.isLiked || false,
-    likesCount: likeQuery.data?.count || 0,
+    likesCount: likeQuery.data?.isLiked
+      ? Number(likeQuery.data?.count || 0) + 1
+      : Number(likeQuery.data?.count || 0),
     isLoading: likeQuery.isLoading,
     error: likeQuery.error,
   };

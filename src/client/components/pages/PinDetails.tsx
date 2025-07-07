@@ -9,14 +9,13 @@ import { PinDetailsLoading } from "../ui/LoadingComponents";
 import { pinDetailsQueryOptions } from "../../lib/queryOptions";
 import { useAuth } from "../../contexts/AuthContext";
 import {
-  useToggleLikeMutation,
   useAddCommentMutation,
   useDeleteCommentMutation,
 } from "../../lib/mutations";
 import { AuthModal } from "../auth/AuthModal";
 import { useAuthModal } from "../../hooks/useAuthModal";
 import { formatRelativeTime, validateComment } from "../../utils/commentUtils";
-import { useImageLikeStatus } from "../../hooks/useLikes";
+import { useImageLikeHandler } from "../../hooks/useImageLikeHandler";
 
 interface PinDetailsProps {
   pinId: string;
@@ -36,56 +35,21 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
   } = useQuery(pinDetailsQueryOptions(pinId, user?.id));
 
   // Mutations
-  const likeMutation = useToggleLikeMutation(pinId);
   const commentMutation = useAddCommentMutation(pinId);
   const deleteCommentMutation = useDeleteCommentMutation(pinId);
 
-  // Get real-time like status for authenticated users
-  const likeStatus = useImageLikeStatus(pinId);
-
-  // Use real-time data if available, otherwise fall back to pin data
-  const isLiked = pin?.isLiked || likeStatus.isLiked;
-  const likesCount = pin?.likes || likeStatus.likesCount || 0;
-
-  // Local state for optimistic updates
-  const [optimisticIsLiked, setOptimisticIsLiked] = useState(isLiked);
-  const [optimisticLikesCount, setOptimisticLikesCount] = useState(likesCount);
-
-  // Update local state when real data changes
-  React.useEffect(() => {
-    setOptimisticIsLiked(isLiked);
-    setOptimisticLikesCount(likesCount);
-  }, [isLiked, likesCount]);
-
-  const handleLikeToggle = async () => {
-    if (!isAuthenticated || !user) {
-      authModal.openModal("login");
-      return;
-    }
-
-    const newLikedState = !optimisticIsLiked;
-
-    // Optimistically update UI
-    setOptimisticIsLiked(newLikedState);
-    setOptimisticLikesCount((prev: number) =>
-      newLikedState ? prev + 1 : prev - 1
-    );
-
-    try {
-      await likeMutation.mutate({
-        userId: user.id,
-        isCurrentlyLiked: optimisticIsLiked,
-      });
-    } catch (error) {
-      // Revert optimistic update on error
-      setOptimisticIsLiked(!newLikedState);
-      setOptimisticLikesCount((prev: number) =>
-        newLikedState ? prev - 1 : prev + 1
-      );
-      console.error("Failed to toggle like:", error);
-    }
-  };
-
+  // Use the reusable like handler
+  const {
+    isLiked,
+    likesCount,
+    handleLikeToggle,
+    isPending: isLikePending,
+  } = useImageLikeHandler({
+    imageId: pinId,
+    initialIsLiked: pin?.isLiked,
+    initialLikesCount: pin?.likes || 0,
+  });
+console.log(pin?.likes, "Pin likes count");
   const handleCommentSubmit = async () => {
     if (!isAuthenticated || !user) {
       authModal.openModal("login");
@@ -214,16 +178,17 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
             {/* Like Button Overlay */}
             <div className="absolute top-3 sm:top-4 right-3 sm:right-4">
               <Button
-                variant={optimisticIsLiked ? "primary" : "secondary"}
+                variant={isLiked ? "primary" : "secondary"}
                 size="md"
+                disabled={isLikePending}
                 icon={
                   <HeartIcon
-                    className={`h-4 w-4 sm:h-5 sm:w-5 ${optimisticIsLiked ? "fill-current" : ""}`}
+                    className={`h-4 w-4 sm:h-5 sm:w-5 ${isLiked ? "fill-current" : ""}`}
                   />
                 }
-                className={`rounded-full shadow-lg text-sm sm:text-base min-h-[44px] ${optimisticIsLiked ? "bg-red-500 hover:bg-red-600 text-white" : ""}`}
+                className={`rounded-full shadow-lg text-sm sm:text-base min-h-[44px] ${isLiked ? "bg-red-500 hover:bg-red-600 text-white" : ""}`}
                 onClick={handleLikeToggle}>
-                {optimisticIsLiked ? "Liked" : "Like"}
+                {isLikePending ? "..." : isLiked ? "Liked" : "Like"}
               </Button>
             </div>
           </div>
@@ -234,14 +199,15 @@ export const PinDetails: React.FC<PinDetailsProps> = ({ pinId }) => {
               <Button
                 variant="ghost"
                 size="sm"
+                disabled={isLikePending}
                 icon={
                   <HeartIcon
-                    className={`h-4 w-4 sm:h-5 sm:w-5 ${optimisticIsLiked ? "fill-current text-red-500" : ""}`}
+                    className={`h-4 w-4 sm:h-5 sm:w-5 ${isLiked ? "fill-current text-red-500" : ""}`}
                   />
                 }
                 className="text-text-secondary hover:text-primary text-sm sm:text-base min-h-[44px] sm:min-h-auto"
                 onClick={handleLikeToggle}>
-                {optimisticLikesCount}
+                {likesCount}
               </Button>
               <Button
                 variant="ghost"
